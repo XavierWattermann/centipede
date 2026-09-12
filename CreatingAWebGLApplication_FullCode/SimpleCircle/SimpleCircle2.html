@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+            <title>2D Triangle</title>
+            
+            <script id="vertex-shader" type="x-shader/x-vertex">
+                
+                attribute vec4 myPosition;
+                
+                void main() {
+                    gl_PointSize = 1.0;
+                    gl_Position.x = myPosition.x;
+					gl_Position.y = myPosition.y;
+					gl_Position.z = 0.0;
+					gl_Position.w = 1.0;
+					
+					gl_Position[0] = myPosition.x;
+					gl_Position[1] = myPosition.y;
+					gl_Position[2] = 0.0;
+					gl_Position[3] = 1.0;
+                }
+                
+            </script>
+            
+            <script id="fragment-shader" type="x-shader/x-fragment">
+                
+                void main() {
+                    gl_FragColor.r = 0.5;
+					gl_FragColor.g = 0.0;
+					gl_FragColor.b = 1.0;
+					gl_FragColor.a = 1.0;
+                }
+                
+            </script>
+            
+            <script type="text/javascript" src="../Common/webgl-utils.js"></script>
+            <script type="text/javascript" src="../Common/initShaders.js"></script>
+            <script type="text/javascript" src="../Common/MV.js"></script>
+        
+            <script type="text/javascript" src="SimpleCircle2.js"></script>
+            
+    </head>
+    
+    <body onload="drawCircle()">
+        <canvas id="gl-canvas" width="512" height="512">
+        </canvas>
+    </body>
+</html>
+
+
