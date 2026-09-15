@@ -4,14 +4,13 @@ Description:
 
 4 shapes include in `lab1.js`:
 
-Shape 1 - Triangle - Color: __
+Shape 1 - Triangle - Color: Yellow; Not Filled in (`gl.LINE_LOOP` was used)
  - This is the only shape that has <=4 vertices. 
 
 Shape 2 - [shape name / description] - Color: __
 
 Shape 3 - [shape name / description] - Color: __
 
-Shape 4 - [shape name / description] - Color: __
 
 
 
