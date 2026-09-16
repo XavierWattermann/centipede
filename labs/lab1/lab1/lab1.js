@@ -22,6 +22,10 @@ function drawShapes() {
 
     // 2 -> ELLIPSE CODE; >5 vertices needed
     // let's start with adding a circle
+    // Either: ((x-a)^2)/c^2 + ((y-b)^2)/d^2 = 1
+
+    // Or: x = c cos(theta) + a
+    // &nbsp; &nbsp; y = d sin(theta) + b
 	var xend = 1.0;
 	var xstart = -1.0;
 	var n = 80;
