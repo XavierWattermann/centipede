@@ -1,3 +1,4 @@
+// Lab 1 - CEG-6500 - Xavier Wattermann
 function drawShapes() {
     // Function to handle drawing all the shapes
     
@@ -12,7 +13,7 @@ function drawShapes() {
     
     var myShaderProgram = initShaders( gl,"vertex-shader", "fragment-shader" );
     gl.useProgram( myShaderProgram );
-
+    var myColorLocation = gl.getUniformLocation(myShaderProgram, "myColor");
     // 1 -> TRIANGLE CODE [only <=4 vertices shape allowed]
     // Enter array set up code here
 	var p0 = vec2( 0.0, 0.0 );
@@ -21,32 +22,15 @@ function drawShapes() {
     var arrayOfPoints = [p0, p1, p2];
 
     // 2 -> ELLIPSE CODE; >5 vertices needed
-    // let's start with adding a circle
     // Either: ((x-a)^2)/c^2 + ((y-b)^2)/d^2 = 1
 
     // Or: x = c cos(theta) + a
     // &nbsp; &nbsp; y = d sin(theta) + b
-	// var xend = 1.0;
-	// var xstart = -1.0;
-	// var n = 80;
-	// var xstep = (xend-xstart)/(n-1.0);
-	// var i = 0;
-	// var r = 1.0;
 
-    // for (i = 0; i < n; i++){
-    //     var x = xstart + i * xstep;
-    //     var y = b * Math.sqrt(1 - (x**2/a**2));
-    // }
-
-
-    // Center coordinates (a, b) and semi-axes (c, d)
-    var a = -0.4; // center x-offset
-    var b = -0.4; // center y-offset
-    // var a = -0.6; // center x-offset
-    // var b = -0.3; // center y-offset
-    var c =  0.5; // horizontal semi-axis
+    var a = -0.4; 
+    var b = -0.4; 
+    var c =  0.5; 
     var d = c/2;
-    // var d =  0.25; // vertical semi-axis
 
     var xstart = a - c;
     var xend   = a + c;
@@ -54,40 +38,20 @@ function drawShapes() {
     var xstep  = (xend - xstart) / (n - 1.0);
     var i = 0;
 
-    // Top half: left-to-right (xstart -> xend)
     for (i = 0; i < n; i++) {
         var x = xstart + i * xstep;
         var term = 1.0 - Math.pow(x - a, 2) / Math.pow(c, 2);
         var y = b + d * Math.sqrt(Math.max(0.0, term));
-        // var y = b + d;
         arrayOfPoints.push(vec2(x, y));
     }
 
-    // Bottom half: right-to-left (xend -> xstart) to preserve a continuous winding loop
     for (i = 0; i < n; i++) {
         var x = xend - i * xstep;
         var term = 1.0 - Math.pow(x - a, 2) / Math.pow(c, 2);
         var y = b - d * Math.sqrt(Math.max(0.0, term));
-        // var y = b - d;
         arrayOfPoints.push(vec2(x, y));
     }
 	
-	
-	// for (i = 0; i < n; i++) {
-	// 	var x = xstart + i * xstep;
-	// 	var y = Math.sqrt( r * r - x * x );
-	// 	var p = vec2( x, y );
-	// 	arrayOfPoints.push( p );
-	// }
-	
-	// for (i = 0; i < n; i++) {
-	// 	var x = xstart + i * xstep;
-	// 	var y = -Math.sqrt( r * r - x * x );
-	// 	var p = vec2( x, y );
-	// 	arrayOfPoints.push( p );
-	// }
-
-    
     var bufferId = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, bufferId );
     gl.bufferData( gl.ARRAY_BUFFER,
@@ -100,12 +64,22 @@ function drawShapes() {
     
 
 
-
     // 3 -> [NEW SHAPE] CODE; >4 vertices needed
-    
+
+
+
     // Think about whether you want to use triangle strip or triangle fan
-	gl.drawArrays( gl.LINE_LOOP, 0, 3 );
-	gl.drawArrays( gl.TRIANGLE_FAN, 4, (n*2)-1 ); //hard coding these indices values is no bueno
+    // triangle
+    gl.uniform4f(myColorLocation, 1.0, 1.0, 0.0, 1.0);
+    gl.drawArrays( gl.LINE_LOOP, 0, 3 );
+
+    // ellipse
+    gl.uniform4f(myColorLocation, 0.4784, 0.5725, 0.2667, 1.0); //this is suppose to be shrek green
+    gl.drawArrays( gl.TRIANGLE_FAN, 3, 2 * n );
+
+    // // 
+    // gl.uniform4f(myColorLocation, 0.4784, 0.5725, 0.2667, 1.0); //this is suppose to be shrek green
+    // gl.drawArrays( gl.TRIANGLE_FAN, 3, 2 * n );
 }
 
 

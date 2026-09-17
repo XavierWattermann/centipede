@@ -1,3 +1,4 @@
+<!-- // Lab 1 - CEG-6500 - Xavier Wattermann -->
 <!DOCTYPE html>
 <html>
     <head>
@@ -16,9 +17,11 @@
             </script>
             
             <script id="fragment-shader" type="x-shader/x-fragment">
+                precision mediump float;
+                uniform vec4 myColor;
                 
                 void main() {
-                    gl_FragColor = vec4( 1.0, 0.5, 0.5, 1.0 );
+                    gl_FragColor = myColor;
                 }
                 
             </script>
