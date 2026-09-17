@@ -26,27 +26,65 @@ function drawShapes() {
 
     // Or: x = c cos(theta) + a
     // &nbsp; &nbsp; y = d sin(theta) + b
-	var xend = 1.0;
-	var xstart = -1.0;
-	var n = 80;
-	var xstep = (xend-xstart)/(n-1.0);
-	var i = 0;
-	var r = 1.0;
+	// var xend = 1.0;
+	// var xstart = -1.0;
+	// var n = 80;
+	// var xstep = (xend-xstart)/(n-1.0);
+	// var i = 0;
+	// var r = 1.0;
+
+    // for (i = 0; i < n; i++){
+    //     var x = xstart + i * xstep;
+    //     var y = b * Math.sqrt(1 - (x**2/a**2));
+    // }
+
+
+    // Center coordinates (a, b) and semi-axes (c, d)
+    var a = -0.5; // center x-offset
+    var b = -0.4; // center y-offset
+    // var a = -0.6; // center x-offset
+    // var b = -0.3; // center y-offset
+    var c =  0.4; // horizontal semi-axis
+    var d =  0.2; // vertical semi-axis
+
+    var xstart = a - c;
+    var xend   = a + c;
+    var n = 80;
+    var xstep  = (xend - xstart) / (n - 1.0);
+    var i = 0;
+
+    // Top half: left-to-right (xstart -> xend)
+    for (i = 0; i < n; i++) {
+        var x = xstart + i * xstep;
+        // var term = 1.0 - Math.pow(x - a, 2) / Math.pow(c, 2);
+        // var y = b + d * Math.sqrt(Math.max(0.0, term));
+        var y = b + d;
+        arrayOfPoints.push(vec2(x, y));
+    }
+
+    // Bottom half: right-to-left (xend -> xstart) to preserve a continuous winding loop
+    for (i = 0; i < n; i++) {
+        var x = xend - i * xstep;
+        // var term = 1.0 - Math.pow(x - a, 2) / Math.pow(c, 2);
+        // var y = b - d * Math.sqrt(Math.max(0.0, term));
+        var y = b - d;
+        arrayOfPoints.push(vec2(x, y));
+    }
 	
 	
-	for (i = 0; i < n; i++) {
-		var x = xstart + i * xstep;
-		var y = Math.sqrt( r * r - x * x );
-		var p = vec2( x, y );
-		arrayOfPoints.push( p );
-	}
+	// for (i = 0; i < n; i++) {
+	// 	var x = xstart + i * xstep;
+	// 	var y = Math.sqrt( r * r - x * x );
+	// 	var p = vec2( x, y );
+	// 	arrayOfPoints.push( p );
+	// }
 	
-	for (i = 0; i < n; i++) {
-		var x = xstart + i * xstep;
-		var y = -Math.sqrt( r * r - x * x );
-		var p = vec2( x, y );
-		arrayOfPoints.push( p );
-	}
+	// for (i = 0; i < n; i++) {
+	// 	var x = xstart + i * xstep;
+	// 	var y = -Math.sqrt( r * r - x * x );
+	// 	var p = vec2( x, y );
+	// 	arrayOfPoints.push( p );
+	// }
 
     
     var bufferId = gl.createBuffer();
