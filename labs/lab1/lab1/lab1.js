@@ -1,4 +1,5 @@
-// Lab 1 - CEG-6500 - Xavier Wattermann
+// Xavier Wattermann
+// Lab 1 - CEG-6500 
 function drawShapes() {
     // Function to handle drawing all the shapes
     
@@ -20,6 +21,8 @@ function drawShapes() {
     var p1 = vec2( 1.0, 0.0 );
     var p2 = vec2( 0.0, 1.0 );
     var arrayOfPoints = [p0, p1, p2];
+    var triangleStart = 0;
+    var triangleEnd = arrayOfPoints.length;
 
     // 2 -> ELLIPSE CODE; >5 vertices needed
     // Either: ((x-a)^2)/c^2 + ((y-b)^2)/d^2 = 1
@@ -27,6 +30,7 @@ function drawShapes() {
     // Or: x = c cos(theta) + a
     // &nbsp; &nbsp; y = d sin(theta) + b
 
+    var ellipseStart = arrayOfPoints.length;
     var a = -0.4; 
     var b = -0.4; 
     var c =  0.5; 
@@ -51,7 +55,26 @@ function drawShapes() {
         var y = b - d * Math.sqrt(Math.max(0.0, term));
         arrayOfPoints.push(vec2(x, y));
     }
-	
+    var ellipseEnd = arrayOfPoints.length - ellipseStart;
+
+    // 3 -> Octagon; >4 vertices needed
+    var octagonStart = arrayOfPoints.length;
+    var cx = 0.5;
+    var cy = -0.5;
+    var r = 0.4;
+    var sides = 8;
+
+    for (var i = 0; i < sides; i++) {
+        var angle = i * (2.0 * Math.PI / sides);
+        var x = cx + r * Math.cos(angle);
+        var y = cy + r * Math.sin(angle);
+        arrayOfPoints.push(vec2(x, y));
+    }
+    var octagonEnd = arrayOfPoints.length - octagonStart;
+
+
+
+    // buffer + array points
     var bufferId = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, bufferId );
     gl.bufferData( gl.ARRAY_BUFFER,
@@ -61,25 +84,23 @@ function drawShapes() {
     var myPositionHandle = gl.getAttribLocation( myShaderProgram, "myPosition" );
     gl.vertexAttribPointer( myPositionHandle, 2, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( myPositionHandle );
-    
 
 
-    // 3 -> [NEW SHAPE] CODE; >4 vertices needed
-
-
+    // drawArrays() here 
 
     // Think about whether you want to use triangle strip or triangle fan
     // triangle
     gl.uniform4f(myColorLocation, 1.0, 1.0, 0.0, 1.0);
-    gl.drawArrays( gl.LINE_LOOP, 0, 3 );
+    gl.drawArrays( gl.LINE_LOOP, triangleStart, triangleEnd);
 
     // ellipse
     gl.uniform4f(myColorLocation, 0.4784, 0.5725, 0.2667, 1.0); //this is suppose to be shrek green
-    gl.drawArrays( gl.TRIANGLE_FAN, 3, 2 * n );
+    gl.drawArrays( gl.TRIANGLE_FAN, ellipseStart, ellipseEnd);
 
-    // // 
-    // gl.uniform4f(myColorLocation, 0.4784, 0.5725, 0.2667, 1.0); //this is suppose to be shrek green
-    // gl.drawArrays( gl.TRIANGLE_FAN, 3, 2 * n );
+    // octagon
+    gl.uniform4f(myColorLocation, 1.0,0.0, 0.0, 1.0);
+    gl.drawArrays(gl.TRIANGLE_FAN, octagonStart, octagonEnd);
+
 }
 
 
