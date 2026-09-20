@@ -26,7 +26,7 @@ In this lab, you will write a WebGL application that demonstrates animation and 
 - the ‘d’ key makes the shape move to the right,
 - the ‘w’ key makes the shape move up, 
 - the ’s’ key makes the shape move down.
-4) You use two buttons, ‘Increase’ and ‘Decrease’ to change the speed of motion of the shape. The ‘Increase’ button increases the speed, and the ‘Decrease’ button reduces the speed. The amount by which you make the animation faster or slower is your choice.
+[DONE] 4) You use two buttons, ‘Increase’ and ‘Decrease’ to change the speed of motion of the shape. The ‘Increase’ button increases the speed, and the ‘Decrease’ button reduces the speed. The amount by which you make the animation faster or slower is your choice.
 5) You use a mouse click makes the shape jump to the location of the mouse click and keep moving along the direction it was moving. For instance, if the shape was moving to the right, and you clicked the location (10, 10) on a canvas of size 512 x 512, then your shape should start moving to the right from location (10, 10).
 6) You have a button called ‘StartRotate’ to rotate the shape and ’StopRotate’ to stop the shape’s rotation. When you press ‘StopRotate’, the shape should preserve its rotation (i.e., not reset to the original orientation you started out with). The direction of rotation (counter-clockwise or clock-wise) and the speed of rotation (fast, slow, medium-paced) is up to you.
 7) You should have a README.txt file containing the description of your implementations.

@@ -41,7 +41,7 @@ function init() {
     
     
     // Set up the background color
-    gl.clearColor( 1.0, 0.0, 0.0, 1.0 );
+    gl.clearColor( 0.0, 0.0, 0.0, 1.0 );
     
     
     shaderProgramSquare = initShaders( gl, "vertex-shader-square",
@@ -60,20 +60,25 @@ function init() {
     // Force the WebGL context to clear the color buffer
     gl.clear( gl.COLOR_BUFFER_BIT );
     
-    setupSquare();
+    setupOctagon();
     
-    drawSquare();
+    drawOctagon();
 }
 
-function setupSquare() {
-    
-    // Enter array set up code here
-    var p0 = vec2( .2, .2 );
-    var p1 = vec2( -.2, .2 );
-    var p2 = vec2( -.2, -.2 );
-    var p3 = vec2( .2, -.2 );
-    var arrayOfPoints = [p0, p1, p2, p3];
-    
+function setupOctagon() {
+    var arrayOfPoints = [];
+    var cx = 0.0;
+    var cy = 0.0;
+    var r = 0.4;
+    var sides = 8;
+
+    for (var i = 0; i < sides; i++) {
+        var angle = i * (2.0 * Math.PI / sides);
+        var x = cx + r * Math.cos(angle);
+        var y = cy + r * Math.sin(angle);
+        arrayOfPoints.push(vec2(x, y));
+    }
+
     // Create a buffer on the graphics card,
     // and send array to the buffer for use
     // in the shaders
@@ -88,12 +93,12 @@ function setupSquare() {
     gl.enableVertexAttribArray( myPositionAttribute );    
 }
 
-function drawSquare() {
+function drawOctagon() {
     gl.clear( gl.COLOR_BUFFER_BIT );
     thetaJS += (speed * stopStartFlag);
     gl.uniform1f(thetaUniform, thetaJS);
-    gl.drawArrays( gl.TRIANGLE_FAN, 0, 4 );
-    requestAnimFrame( drawSquare );
+    gl.drawArrays( gl.TRIANGLE_FAN, 0, 8 );
+    requestAnimFrame( drawOctagon);
 }
 
 function stopOrStartAnim() {
@@ -105,21 +110,16 @@ function stopOrStartAnim() {
     }
 }
 
-function moveSquare(event){
+function moveOctagon(event){
     var canvasX = event.clientX;
     var canvasY = event.clientY;
     moveX_JS = 2.0 * canvasX/512.0 - 1.0;
     moveY_JS = -(2.0 * canvasY/512.0 - 1.0);
     gl.uniform2f(moveUniform, moveX_JS, moveY_JS);
-    // var canvasX = event.clientX;
-    // var canvasY = event.clientY;
-
-    // var clipX = 2.0 * canvasX / 512 - 1.0;
-    // var clipY = -(2.0 * canvasY / 512 - 1.0;
 
 }
 
-function moveSquareKeys(event){
+function moveOctagonKeys(event){
     var theKeyCode = event.keyCode;
     var inc = 0.1;
     if (theKeyCode == 65){
