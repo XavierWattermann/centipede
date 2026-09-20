@@ -10,6 +10,24 @@ var stopStartFlag;
 var moveX_JS;
 var moveY_JS;
 var moveUniform;
+var speed = 0.1;
+
+function changeSpeed(increase) {
+    var inc = 0.02;
+    if (increase) {
+        speed += inc;
+    } else {
+        // make sure it doesn't go negative
+        if (speed <= 0.0) {
+            speed = 0.0;
+        }
+        else{
+            speed -= inc 
+        }
+    }
+    // console.log("Speed is, ", speed);
+    document.getElementById("speedDisplay").textContent = speed.toFixed(2);
+}
 
 
 function init() {
@@ -72,7 +90,7 @@ function setupSquare() {
 
 function drawSquare() {
     gl.clear( gl.COLOR_BUFFER_BIT );
-    thetaJS += (0.03 * stopStartFlag);
+    thetaJS += (speed * stopStartFlag);
     gl.uniform1f(thetaUniform, thetaJS);
     gl.drawArrays( gl.TRIANGLE_FAN, 0, 4 );
     requestAnimFrame( drawSquare );
@@ -90,9 +108,6 @@ function stopOrStartAnim() {
 function moveSquare(event){
     var canvasX = event.clientX;
     var canvasY = event.clientY;
-
-
-
     moveX_JS = 2.0 * canvasX/512.0 - 1.0;
     moveY_JS = -(2.0 * canvasY/512.0 - 1.0);
     gl.uniform2f(moveUniform, moveX_JS, moveY_JS);

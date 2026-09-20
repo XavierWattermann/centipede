@@ -40,6 +40,8 @@
     <body onload="init()" onkeydown="moveSquareKeys(event)">
         <canvas width="512" height="512" id="gl-canvas" onclick="moveSquare(event)">
         </canvas>
+        <button id="increaseSpeed" onclick="changeSpeed(true)">Increase</button>
+        <button id="decreaseSpeed" onclick="changeSpeed(false)">Decrease</button>
         <button id="stopStartButton" onclick="stopOrStartAnim()">StopStartButton</button>
     </body>
 </html>
