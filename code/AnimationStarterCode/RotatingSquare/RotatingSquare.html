@@ -10,8 +10,22 @@
             
             <script type="x-shader/x-vertex" id="vertex-shader-square">
                 attribute vec4 myPosition;
+                uniform float theta;
+                uniform vec2 move;
+
                 void main() {
-                    gl_Position = myPosition;
+                    float xi, yi, xf, yf;
+                    xi = myPosition.x;
+                    yi = myPosition.y;
+
+                    xf = xi * cos(theta) + yi * sin(theta) + move.x;
+                    yf = -xi * sin(theta) + yi * cos(theta) + move.y;
+
+                    gl_Position.x = xf;
+                    gl_Position.y = yf;
+                    gl_Position.z = 0.0;
+                    gl_Position.w = 1.0;
+
                     gl_PointSize = 1.0;
                 }
                 </script>
@@ -23,9 +37,10 @@
             </script>
     </head>
     
-    <body onload="init()">
-        <canvas width="512" height="512" id="gl-canvas">
+    <body onload="init()" onkeydown="moveSquareKeys(event)">
+        <canvas width="512" height="512" id="gl-canvas" onclick="moveSquare(event)">
         </canvas>
+        <button id="stopStartButton" onclick="stopOrStartAnim()">StopStartButton</button>
     </body>
 </html>
 

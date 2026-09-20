@@ -1,5 +1,14 @@
 var gl;
 var shaderProgramSquare;
+var thetaJS;
+var thetaUniform;
+
+var stopStartFlag;
+
+var moveX_JS;
+var moveY_JS;
+var moveUniform;
+
 
 function init() {
     // Set up the canvas
@@ -18,7 +27,16 @@ function init() {
     shaderProgramSquare = initShaders( gl, "vertex-shader-square",
                                       "fragment-shader-square" );
     gl.useProgram( shaderProgramSquare );
-    
+    thetaJS = 0.0;
+    thetaUniform = gl.getUniformLocation(shaderProgramSquare, "theta");
+    gl.uniform1f(thetaUniform, thetaJS);
+    stopStartFlag = 1.0;
+
+    moveX_JS = 0.0;
+    moveY_JS = 0.0;
+    moveUniform = gl.getUniformLocation(shaderProgramSquare, "move");
+    gl.uniform2f(moveUniform, moveX_JS, moveY_JS);
+
     // Force the WebGL context to clear the color buffer
     gl.clear( gl.COLOR_BUFFER_BIT );
     
@@ -51,7 +69,53 @@ function setupSquare() {
 }
 
 function drawSquare() {
-        
+    gl.clear( gl.COLOR_BUFFER_BIT );
+    thetaJS += (0.03 * stopStartFlag);
+    gl.uniform1f(thetaUniform, thetaJS);
     gl.drawArrays( gl.TRIANGLE_FAN, 0, 4 );
-    
+    requestAnimFrame( drawSquare );
+}
+
+function stopOrStartAnim() {
+    if (stopStartFlag < 0.5) {
+        stopStartFlag = 1.0;
+    }
+    else {
+        stopStartFlag = 0.0;
+    }
+}
+
+function moveSquare(event){
+    var canvasX = event.clientX;
+    var canvasY = event.clientY;
+
+
+
+    moveX_JS = 2.0 * canvasX/512.0 - 1.0;
+    moveY_JS = -(2.0 * canvasY/512.0 - 1.0);
+    gl.uniform2f(moveUniform, moveX_JS, moveY_JS);
+    // var canvasX = event.clientX;
+    // var canvasY = event.clientY;
+
+    // var clipX = 2.0 * canvasX / 512 - 1.0;
+    // var clipY = -(2.0 * canvasY / 512 - 1.0;
+
+}
+
+function moveSquareKeys(event){
+    var theKeyCode = event.keyCode;
+    var inc = 0.1;
+    if (theKeyCode == 65){
+        moveX_JS -= inc;
+    }
+    else if (theKeyCode == 68){
+        moveX_JS += inc;
+    }
+    else if (theKeyCode == 83){
+        moveY_JS -= inc;
+    }
+    else if (theKeyCode == 87){
+        moveY_JS += inc;
+    }
+    gl.uniform2f(moveUniform, moveX_JS, moveY_JS);
 }
