@@ -19,9 +19,9 @@ Lab 2: Animation and Interaction
 Preparatory Material: Code covered in class up to and including 04 Animation and Interactions
 
 In this lab, you will write a WebGL application that demonstrates animation and interactions from the user. In particular, you will implement a moving shape that satisfies the following criteria:
-1) The shape is a polygon with more than 4 vertices.
-2) The shape starts at the origin, and starts moving along the x-axis to the right. The rate of animation is your choice.
-3) You use the keys ‘a’, ’d’, ‘w’, or ’s’ to change the direction of motion of the shape: 
+[DONE -- OCTAGON USED] 1) The shape is a polygon with more than 4 vertices.
+[DONE] 2) The shape starts at the origin, and starts moving along the x-axis to the right. The rate of animation is your choice.
+[DONE] 3) You use the keys ‘a’, ’d’, ‘w’, or ’s’ to change the direction of motion of the shape: 
 - The ‘a’ key makes the shape move to the left, 
 - the ‘d’ key makes the shape move to the right,
 - the ‘w’ key makes the shape move up, 

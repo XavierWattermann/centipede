@@ -1,21 +1,21 @@
 // Xavier Wattermann
-// Lab 1 - CEG-6500 
+// Lab 2 - CEG-6500 
 var gl;
 var shaderProgramSquare;
 var thetaJS;
 var thetaUniform;
 
-var stopStartFlag;
+var stopStartFlag = 1.0;
 
 var moveX_JS;
 var moveY_JS;
 var moveUniform;
-var speed = 0.005;
-var directionX;
-var directionY;
+var speed = 0.01;
+var directionX = 1.0;
+var directionY = 0.0;
 
 function changeSpeed(increase) {
-    var inc = 0.001;
+    var inc = 0.01;
     if (increase) {
         speed += inc;
     } else {
@@ -28,7 +28,7 @@ function changeSpeed(increase) {
         }
     }
     // console.log("Speed is, ", speed);
-    document.getElementById("speedDisplay").textContent = speed.toFixed(3);
+    document.getElementById("speedDisplay").textContent = speed.toFixed(2);
 }
 
 
@@ -97,11 +97,13 @@ function setupOctagon() {
 
 function drawOctagon() {
     gl.clear( gl.COLOR_BUFFER_BIT );
-    // thetaJS += (speed * stopStartFlag);
-    // gl.uniform1f(thetaUniform, thetaJS);
-
-    moveX_JS += (speed * stopStartFlag);
+    moveX_JS += (speed * directionX);
+    moveY_JS += (speed * directionY);
     gl.uniform2f(moveUniform, moveX_JS, moveY_JS);
+
+    var rotateSpeed = 0.02
+    thetaJS += (rotateSpeed * stopStartFlag);
+    gl.uniform1f(thetaUniform, thetaJS);
 
 
     gl.drawArrays( gl.TRIANGLE_FAN, 0, 8 );
@@ -130,22 +132,21 @@ function moveOctagon(event){
 
 function moveOctagonKeys(event){
     var theKeyCode = event.keyCode;
-    var inc = 0.1;
-    if (theKeyCode == 65){
-        moveX_JS -= inc;
-        console.log("A", stopStartFlag)
+    if (theKeyCode == 65){ // a key
+        directionX = -1.0;
+        directionY = 0.0;
     }
-    else if (theKeyCode == 68){
-        moveX_JS += inc;
-        console.log("B")
+    else if (theKeyCode == 68){ // d key
+        directionX = 1.0;
+        directionY = 0.0;
     }
-    else if (theKeyCode == 83){
-        moveY_JS -= inc;
-        console.log("C")
+    else if (theKeyCode == 83){ // s key
+        directionY = -1.0;
+        directionX = 0.0;
     }
-    else if (theKeyCode == 87){
-        moveY_JS += inc;
-        console.log("D")
+    else if (theKeyCode == 87){ // w key
+        directionY = 1.0;
+        directionX = 0.0;
     }
-    gl.uniform2f(moveUniform, moveX_JS, moveY_JS);
+    // gl.uniform2f(moveUniform, moveX_JS, moveY_JS);
 }
