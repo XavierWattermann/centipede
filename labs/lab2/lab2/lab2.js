@@ -10,10 +10,12 @@ var stopStartFlag;
 var moveX_JS;
 var moveY_JS;
 var moveUniform;
-var speed = 0.1;
+var speed = 0.005;
+var directionX;
+var directionY;
 
 function changeSpeed(increase) {
-    var inc = 0.02;
+    var inc = 0.001;
     if (increase) {
         speed += inc;
     } else {
@@ -26,7 +28,7 @@ function changeSpeed(increase) {
         }
     }
     // console.log("Speed is, ", speed);
-    document.getElementById("speedDisplay").textContent = speed.toFixed(2);
+    document.getElementById("speedDisplay").textContent = speed.toFixed(3);
 }
 
 
@@ -69,7 +71,7 @@ function setupOctagon() {
     var arrayOfPoints = [];
     var cx = 0.0;
     var cy = 0.0;
-    var r = 0.4;
+    var r = 0.2;
     var sides = 8;
 
     for (var i = 0; i < sides; i++) {
@@ -95,8 +97,13 @@ function setupOctagon() {
 
 function drawOctagon() {
     gl.clear( gl.COLOR_BUFFER_BIT );
-    thetaJS += (speed * stopStartFlag);
-    gl.uniform1f(thetaUniform, thetaJS);
+    // thetaJS += (speed * stopStartFlag);
+    // gl.uniform1f(thetaUniform, thetaJS);
+
+    moveX_JS += (speed * stopStartFlag);
+    gl.uniform2f(moveUniform, moveX_JS, moveY_JS);
+
+
     gl.drawArrays( gl.TRIANGLE_FAN, 0, 8 );
     requestAnimFrame( drawOctagon);
 }
@@ -115,6 +122,8 @@ function moveOctagon(event){
     var canvasY = event.clientY;
     moveX_JS = 2.0 * canvasX/512.0 - 1.0;
     moveY_JS = -(2.0 * canvasY/512.0 - 1.0);
+
+    // console.log("move", canvasX, canvasY, moveX_JS, moveY_JS);
     gl.uniform2f(moveUniform, moveX_JS, moveY_JS);
 
 }
@@ -124,15 +133,19 @@ function moveOctagonKeys(event){
     var inc = 0.1;
     if (theKeyCode == 65){
         moveX_JS -= inc;
+        console.log("A", stopStartFlag)
     }
     else if (theKeyCode == 68){
         moveX_JS += inc;
+        console.log("B")
     }
     else if (theKeyCode == 83){
         moveY_JS -= inc;
+        console.log("C")
     }
     else if (theKeyCode == 87){
         moveY_JS += inc;
+        console.log("D")
     }
     gl.uniform2f(moveUniform, moveX_JS, moveY_JS);
 }
