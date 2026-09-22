@@ -2,12 +2,29 @@ Xavier Wattermann - CEG6500 - Lab 2
 
 Description:
 
+Animation:
+ - Implemented in the `drawOctagon()` function
+ - For each frame, `moveX_JS` and `moveY_JS` are incremented by the "global" `speed` variable and a `directionX` and `directionY` variable. directionX is initialized to 1, and directionY is initialized to 0. This starts it moving it across the X-axis to the right (-1 would move to the left, +1 would Y would move it up, etc)
 
+Direction Control (W-A-S-D Keys):
+ - Implemented in `moveOctagonKeys(event)` function; similar to the one we implemented in class.
+ - This checks the ascii keycode and depending on the value, changes the directionX and directionY value to move to the corresponding direction (w -> up, a -> left, s -> down, d -> right). 
+ - For the `a` key key for example, we change the directionX to -1, so it moves left and ensure that directionY is set to 0. Likewise for `d` key, we set directionX to positive 1. For s/w we set directionY to -1/1 and set directionX to 0.
 
+Speed Adjustment:
+ - Implemented in the `changeSpeed` function. 
+ - This function simply increases the global `speed` variable by an increment of 0.01, which is ultimately used in the `drawOctagon` with the moveX / moveY JS variables.
+ - I added a simple check to make sure the speed can't be negative. 
 
+Mouse Click:
+ - Implemented in `moveOctagon(event)` function; used by the `<canvas>` onclick event.
+ - This function is very similar (if not the same) to the one we implemented in class. 
+ - We get the user's mouse position for the `event` object, and then we map that to the WebGL clip space; updating `moveX` and `moveY_JS` to move the object. 
 
-TODO (Delete This):
- - Change shape (can't use the square; use octagon from lab 1)
+Rotation Start / Stop 
+ - Implemented in `stopOrStartAnim` function
+ - Toggles the `stopStartFlag`, which is used in the `drawOctagon` function, by updating `thetaJS` value (0 stops the rotation), otherwise we use the rotationSpeed variable to change the speed of rotation.
+
 
 
 

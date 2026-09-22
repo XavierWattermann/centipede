@@ -11,6 +11,7 @@ var moveX_JS;
 var moveY_JS;
 var moveUniform;
 var speed = 0.01;
+var rotateSpeed = 0.02;
 var directionX = 1.0;
 var directionY = 0.0;
 
@@ -29,6 +30,24 @@ function changeSpeed(increase) {
     }
     // console.log("Speed is, ", speed);
     document.getElementById("speedDisplay").textContent = speed.toFixed(2);
+}
+
+function changeRotateSpeed(increase) {
+    // Change the rotation speed; basically the same function
+    // as the above changeSpeed, and could probably refactor it to handle both
+    var inc = 0.01;
+    if (increase) {
+        rotateSpeed += inc;
+    } else {
+        // make sure it doesn't go negative
+        if (rotateSpeed <= 0.0) {
+            rotateSpeed = 0.0;
+        }
+        else{
+            rotateSpeed -= inc 
+        }
+    }
+    document.getElementById("rotateSpeedDisplay").textContent = rotateSpeed.toFixed(2);
 }
 
 
@@ -101,7 +120,6 @@ function drawOctagon() {
     moveY_JS += (speed * directionY);
     gl.uniform2f(moveUniform, moveX_JS, moveY_JS);
 
-    var rotateSpeed = 0.02
     thetaJS += (rotateSpeed * stopStartFlag);
     gl.uniform1f(thetaUniform, thetaJS);
 
@@ -125,7 +143,6 @@ function moveOctagon(event){
     moveX_JS = 2.0 * canvasX/512.0 - 1.0;
     moveY_JS = -(2.0 * canvasY/512.0 - 1.0);
 
-    // console.log("move", canvasX, canvasY, moveX_JS, moveY_JS);
     gl.uniform2f(moveUniform, moveX_JS, moveY_JS);
 
 }
