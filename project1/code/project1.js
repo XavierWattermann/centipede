@@ -10,7 +10,8 @@ var stopStartFlag = 1.0;
 var moveX_JS;
 var moveY_JS;
 var moveUniform;
-var speed = 0.01;
+var colorUniform;
+var speed = 0.01; //TODO: give these a more descriptive name (user speed, enemy speed)
 var rotateSpeed = 0.02;
 var directionX = 1.0;
 var directionY = 0.0;
@@ -21,7 +22,16 @@ var maxX = 1.0 - playerRadius; //right
 var minY = -1.0 + playerRadius; //bottom wall
 var maxY = -0.60 - playerRadius; //top the player can go TODO: ADJUST THIS
 
-// 
+
+var octagonBufferId; 
+var bulletBufferId;
+var myPositionAttribute; //need to refactor this
+var bullets = []
+var bulletSpeed = 0.04;
+
+var mushrooms = [];
+
+// size of the clipspace / canvas 
 var COLS = 30;
 var ROWS = 30;
 var cellWidth = 2.0 / COLS;
@@ -34,21 +44,6 @@ function gridToClip(col, row) {
     };
 }
 
-// function createMushrooms(){
-//     // Function to handle the creation of the mushrooms, going to use octagons store it
-//     var numMushrooms = 40;
-//     // mushrooms = [];
-//     for (var i = 0; i < numMushrooms; i++) {
-//         // Random positions between -0.8 and +0.8 (staying inside canvas boundaries)
-//         var randX = (Math.random() * 1.6) - 0.8;
-//         var randY = (Math.random() * 1.6) - 0.8;
-//         mushrooms.push({ x: randX, y: randY });
-//     }
-//     setupOctagon();
-// }
-
-
-var mushrooms = [];
 
 function createMushrooms() {
     // TODO: need to limit this to 1/5 of the bottom area
@@ -98,11 +93,21 @@ function createMushrooms() {
     setupOctagon();
 }
 
-// Helper to draw an octagon at a specific position and rotation
-function drawSingleOctagon(x, y, theta) {
+function drawSingleOctagon(x, y, theta, color) {
+    gl.bindBuffer(gl.ARRAY_BUFFER, octagonBufferId);
+    gl.vertexAttribPointer(myPositionAttribute, 2, gl.FLOAT, false, 0, 0);
     gl.uniform2f(moveUniform, x, y);
     gl.uniform1f(thetaUniform, theta);
+    gl.uniform4fv(colorUniform, color);
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 8);
+}
+function drawSingleBullet(x, y) {
+    gl.bindBuffer(gl.ARRAY_BUFFER, bulletBufferId);
+    gl.vertexAttribPointer(myPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+    gl.uniform2f(moveUniform, x, y);
+    gl.uniform1f(thetaUniform, 0.0); // Bullets travel straight vertical
+    gl.uniform4f(colorUniform, 0.7, 0.7, 0.7, 1.0); // Gray color
+    gl.drawArrays(gl.LINES, 0, 2);
 }
 
 function render() {
@@ -110,7 +115,7 @@ function render() {
 
     // Draw all mushrooms (static, theta = 0)
     for (var i = 0; i < mushrooms.length; i++) {
-        drawSingleOctagon(mushrooms[i].x, mushrooms[i].y, 0.0);
+        drawSingleOctagon(mushrooms[i].x, mushrooms[i].y, 0.0, [0.0, 1.0, 1.0, 1.0]);
     }
 
     // Update and draw the player / moving octagon
@@ -123,7 +128,7 @@ function render() {
 
     thetaJS  += (rotateSpeed * stopStartFlag);
 
-    drawSingleOctagon(moveX_JS, moveY_JS, thetaJS);
+    drawSingleOctagon(moveX_JS, moveY_JS, thetaJS, [0.0, 1.0, 0.0, 1.0]);
 
     requestAnimFrame(render);
 }
@@ -189,6 +194,7 @@ function init() {
     moveX_JS = 0.0;
     moveY_JS = 0.0;
     moveUniform = gl.getUniformLocation(shaderProgramSquare, "move");
+    colorUniform = gl.getUniformLocation(shaderProgramSquare, "uColor");
     gl.uniform2f(moveUniform, moveX_JS, moveY_JS);
 
     // Force the WebGL context to clear the color buffer
@@ -218,18 +224,25 @@ function setupOctagon() {
         arrayOfPoints.push(vec2(x, y));
     }
 
-    // Create a buffer on the graphics card,
-    // and send array to the buffer for use
-    // in the shaders
-    var bufferId = gl.createBuffer();
-    gl.bindBuffer( gl.ARRAY_BUFFER, bufferId );
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(arrayOfPoints), gl.STATIC_DRAW );
+    octagonBufferId = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, octagonBufferId);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(arrayOfPoints), gl.STATIC_DRAW);
+
+    myPositionAttribute = gl.getAttribLocation(shaderProgramSquare, "myPosition");
+    gl.enableVertexAttribArray(myPositionAttribute);
+
+    // // Create a buffer on the graphics card,
+    // // and send array to the buffer for use
+    // // in the shaders
+    // var bufferId = gl.createBuffer();
+    // gl.bindBuffer( gl.ARRAY_BUFFER, bufferId );
+    // gl.bufferData( gl.ARRAY_BUFFER, flatten(arrayOfPoints), gl.STATIC_DRAW );
     
-    // Create a pointer that iterates over the
-    // array of points in the shader code
-    var myPositionAttribute = gl.getAttribLocation( shaderProgramSquare, "myPosition" );
-    gl.vertexAttribPointer( myPositionAttribute, 2, gl.FLOAT, false, 0, 0 );
-    gl.enableVertexAttribArray( myPositionAttribute );    
+    // // Create a pointer that iterates over the
+    // // array of points in the shader code
+    // var myPositionAttribute = gl.getAttribLocation( shaderProgramSquare, "myPosition" );
+    // gl.vertexAttribPointer( myPositionAttribute, 2, gl.FLOAT, false, 0, 0 );
+    // gl.enableVertexAttribArray( myPositionAttribute );    
 }
 
 function drawOctagon() {
@@ -271,19 +284,19 @@ function moveOctagonKeys(event){
     var theKeyCode = event.keyCode;
 
     // MOVEMENT ====================================
-    if (theKeyCode == 65){ // a key
+    if (theKeyCode == 65 || theKeyCode == 37){ // a key || left arrow
         directionX = -1.0;
         directionY = 0.0;
     }
-    else if (theKeyCode == 68){ // d key
+    else if (theKeyCode == 68 || theKeyCode == 39){ // d key || right arrow
         directionX = 1.0;
         directionY = 0.0;
     }
-    else if (theKeyCode == 83){ // s key
+    else if (theKeyCode == 83 || theKeyCode == 40){ // s key || down
         directionY = -1.0;
         directionX = 0.0;
     }
-    else if (theKeyCode == 87){ // w key
+    else if (theKeyCode == 87 || theKeyCode == 38){ // w key || up
         directionY = 1.0;
         directionX = 0.0;
     }
