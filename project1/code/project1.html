@@ -1,0 +1,59 @@
+<!-- // Lab 2 - CEG6500 - Xavier Wattermann -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+            <title>Project 1 - CEG6500 - Xavier Wattermann</title>
+            <script type="text/javascript" src="../Common/webgl-utils.js"></script>
+            <script type="text/javascript" src="../Common/initShaders.js"></script>
+            <script type="text/javascript" src="../Common/MV.js"></script>
+            <script type="text/javascript" src="project1.js"></script>
+            
+            <script type="x-shader/x-vertex" id="vertex-shader-square">
+                attribute vec4 myPosition;
+                uniform float theta;
+                uniform vec2 move;
+
+                void main() {
+                    float xi, yi, xf, yf;
+                    xi = myPosition.x;
+                    yi = myPosition.y;
+
+                    xf = xi * cos(theta) + yi * sin(theta) + move.x;
+                    yf = -xi * sin(theta) + yi * cos(theta) + move.y;
+
+                    gl_Position.x = xf;
+                    gl_Position.y = yf;
+                    gl_Position.z = 0.0;
+                    gl_Position.w = 1.0;
+
+                    gl_PointSize = 1.0;
+                }
+                </script>
+            
+            <script type="x-shader/x-fragment" id="fragment-shader-square">
+                void main() {
+                    gl_FragColor = vec4( 0.0, 1.0, .0, 1.0 );
+                }
+            </script>
+    </head>
+    
+    <body onload="init()" onkeydown="moveOctagonKeys(event)">
+        <canvas width="512" height="512" id="gl-canvas" onclick="moveOctagon(event)">
+        </canvas>
+    </br>
+        <!-- Control Buttons -->
+        <button id="increaseSpeed" onclick="changeSpeed(true)"> Increase Speed </button>
+        <button id="decreaseSpeed" onclick="changeSpeed(false)">Decrease Speed </button>
+        <button id="stopStartButton" onclick="stopOrStartAnim()">Start / Stop Rotate</button>
+    </br>
+        <button id="increaseRotateSpeed" onclick="changeRotateSpeed(true)"> Increase Rotate Speed </button>
+        <button id="decreaseRotateSpeed" onclick="changeRotateSpeed(false)">Decrease Rotate Speed </button>
+
+        <!-- Show the speed (mostly for my own debugging) -->
+        <p>Current Speed: <span id="speedDisplay">0.01</span></p>
+        <p>Current Rotate Speed: <span id="rotateSpeedDisplay">0.02</span></p>
+    </body>
+</html>
+
+
