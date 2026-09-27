@@ -257,17 +257,20 @@ function stopOrStartAnim() {
 }
 
 function moveOctagon(event){
-    var canvasX = event.clientX;
-    var canvasY = event.clientY;
-    moveX_JS = 2.0 * canvasX/512.0 - 1.0;
-    moveY_JS = -(2.0 * canvasY/512.0 - 1.0);
+    console.log("Currently not doing anything with mouse clicks");
+    // var canvasX = event.clientX;
+    // var canvasY = event.clientY;
+    // moveX_JS = 2.0 * canvasX/512.0 - 1.0;
+    // moveY_JS = -(2.0 * canvasY/512.0 - 1.0);
 
-    gl.uniform2f(moveUniform, moveX_JS, moveY_JS);
+    // gl.uniform2f(moveUniform, moveX_JS, moveY_JS);
 
 }
 
 function moveOctagonKeys(event){
     var theKeyCode = event.keyCode;
+
+    // MOVEMENT ====================================
     if (theKeyCode == 65){ // a key
         directionX = -1.0;
         directionY = 0.0;
@@ -284,5 +287,13 @@ function moveOctagonKeys(event){
         directionY = 1.0;
         directionX = 0.0;
     }
+    // ====================================
+    // SPACE BAR -- SHOOTING
+    if (theKeyCode == 32) {
+        event.preventDefault(); //handles to stop the page scrollign 
+        console.log("SPACE BAR PRESSED");
+    }
+
+    
     gl.uniform2f(moveUniform, moveX_JS, moveY_JS);
 }
