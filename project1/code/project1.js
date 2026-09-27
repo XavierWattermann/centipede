@@ -14,6 +14,12 @@ var speed = 0.01;
 var rotateSpeed = 0.02;
 var directionX = 1.0;
 var directionY = 0.0;
+// boundaries to limit where we can move
+var playerRadius = 0.03;
+var minX = -1.0 + playerRadius; //left
+var maxX = 1.0 - playerRadius; //right
+var minY = -1.0 + playerRadius; //bottom wall
+var maxY = -0.60 - playerRadius; //top the player can go TODO: ADJUST THIS
 
 // 
 var COLS = 30;
@@ -45,6 +51,7 @@ function gridToClip(col, row) {
 var mushrooms = [];
 
 function createMushrooms() {
+    // TODO: need to limit this to 1/5 of the bottom area
     mushrooms = [];
     var occupied = {}; // Prevents placing two mushrooms in the same cell
 
@@ -53,6 +60,7 @@ function createMushrooms() {
 
         if (r <= 3) {
             // Bottom 2-3 rows: sparse (only 25% chance of a mushroom)
+            // TODO: change this % to even lower
             count = Math.random() < 0.25 ? 1 : 0;
         } else if (r >= 10 && r <= 24) {
             // Upper-middle area: 2 mushrooms per row
@@ -98,22 +106,25 @@ function drawSingleOctagon(x, y, theta) {
 }
 
 function render() {
-    // 1. Clear the screen once per frame
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    // 2. Draw all mushrooms (static, theta = 0)
+    // Draw all mushrooms (static, theta = 0)
     for (var i = 0; i < mushrooms.length; i++) {
         drawSingleOctagon(mushrooms[i].x, mushrooms[i].y, 0.0);
     }
 
-    // 3. Update and draw the player / moving octagon
+    // Update and draw the player / moving octagon
     moveX_JS += (speed * directionX);
     moveY_JS += (speed * directionY);
+
+    // limit the user from going past the wall(s)
+    moveX_JS = Math.max(minX, Math.min(maxX, moveX_JS));
+    moveY_JS = Math.max(minY, Math.min(maxY, moveY_JS));
+
     thetaJS  += (rotateSpeed * stopStartFlag);
 
     drawSingleOctagon(moveX_JS, moveY_JS, thetaJS);
 
-    // 4. Request next frame
     requestAnimFrame(render);
 }
 
