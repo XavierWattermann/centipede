@@ -113,21 +113,33 @@ function drawSingleBullet(x, y) {
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    // Draw all mushrooms (static, theta = 0)
+    // 1. Draw all mushrooms (Green)
     for (var i = 0; i < mushrooms.length; i++) {
-        drawSingleOctagon(mushrooms[i].x, mushrooms[i].y, 0.0, [0.0, 1.0, 1.0, 1.0]);
+        drawSingleOctagon(mushrooms[i].x, mushrooms[i].y, 0.0, [0.0, 1.0, 0.0, 1.0]);
     }
 
-    // Update and draw the player / moving octagon
+    // 2. Update and draw bullets (Gray)
+    for (var b = 0; b < bullets.length; b++) {
+        bullets[b].y += bulletSpeed;
+
+        // If bullet moves past the top of the screen, remove it
+        if (bullets[b].y > 1.0) {
+            bullets.splice(b, 1);
+            b--;
+            continue;
+        }
+
+        drawSingleBullet(bullets[b].x, bullets[b].y);
+    }
+
+    // 3. Move and draw player (Green)
     moveX_JS += (speed * directionX);
     moveY_JS += (speed * directionY);
 
-    // limit the user from going past the wall(s)
     moveX_JS = Math.max(minX, Math.min(maxX, moveX_JS));
     moveY_JS = Math.max(minY, Math.min(maxY, moveY_JS));
 
-    thetaJS  += (rotateSpeed * stopStartFlag);
-
+    thetaJS += (rotateSpeed * stopStartFlag);
     drawSingleOctagon(moveX_JS, moveY_JS, thetaJS, [0.0, 1.0, 0.0, 1.0]);
 
     requestAnimFrame(render);
@@ -201,13 +213,21 @@ function init() {
     gl.clear( gl.COLOR_BUFFER_BIT );
 
     createMushrooms();
+    setupBullet();
     render();
 
-    // createMushrooms();
-    
-    // setupOctagon();
-    
-    // drawOctagon();
+}
+
+
+function setupBullet() {
+    var lineLength = 0.04; //todo: should make this controllable   
+    var linePoints = [
+        vec2(0.0, 0.0),
+        vec2(0.0, lineLength)
+    ];
+    bulletBufferId = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, bulletBufferId);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(linePoints), gl.STATIC_DRAW);
 }
 
 function setupOctagon() {
@@ -304,7 +324,11 @@ function moveOctagonKeys(event){
     // SPACE BAR -- SHOOTING
     if (theKeyCode == 32) {
         event.preventDefault(); //handles to stop the page scrollign 
-        console.log("SPACE BAR PRESSED");
+        bullets.push({
+            x: moveX_JS,
+            // y: moveY_JS + playerRadius 
+            y: moveY_JS 
+        });
     }
 
     
