@@ -1,8 +1,6 @@
 // Xavier Wattermann
 // Project 1   
 
-// const { checkCollision } = require("./helpers");
-
 // Note: checkCollision is loaded from helpers.js in project1.html
 
 
@@ -26,6 +24,8 @@ var directionX = 1.0;
 var directionY = 0.0;
 // boundaries to limit where we can move
 var playerRadius = 0.03;
+var mushroomRadius = 0.03; 
+var bulletRadius = 0.01; 
 var minX = -1.0 + playerRadius; //left
 var maxX = 1.0 - playerRadius; //right
 var minY = -1.0 + playerRadius; //bottom wall
@@ -90,7 +90,7 @@ function createMushrooms() {
                     row: r,
                     x: clipPos.x,
                     y: clipPos.y,
-                    health: 4 // Classic Atari: mushrooms take 4 hits to destroy
+                    health: 3 // real game uses 4, but this seems more suitable? 
                 });
                 placed++;
             }
@@ -119,12 +119,33 @@ function drawSingleBullet(x, y) {
     gl.drawArrays(gl.LINES, 0, 2);
 }
 
+function mushroomHealthColor(health) {
+    // function to return the color of the mushroom based on it's health (how many hits it has)
+    // default (3) is green, 2 is yellow, 1 is red, and 0 means it should be removed from the screen
+    // returns an array of the color to use
+    var healthy = [0.0, 1.0, 0.0, 1.0]
+    var oneHit = [1.0, 1.0, 0.0, 1.0];
+    var twoHit = [1.0, 0.2, 0.2, 1.0];
+    if (health === 3 ) {
+        return healthy;
+    }
+    else if (health === 2){
+        return oneHit;
+    }
+    else if (health === 1){
+        return twoHit;
+    }
+    return healthy;
+}
+
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     // 1. Draw all mushrooms -- green 
     for (var i = 0; i < mushrooms.length; i++) {
-        drawSingleOctagon(mushrooms[i].x, mushrooms[i].y, 0.0, [0.0, 1.0, 0.0, 1.0]);
+        // console.log(mushroom[i])
+        var mushroomColor = mushroomHealthColor(mushrooms[i].health);
+        drawSingleOctagon(mushrooms[i].x, mushrooms[i].y, 0.0, mushroomColor);
     }
 
     // // 2. Update and draw bullets -- gray
@@ -140,9 +161,7 @@ function render() {
 
     // }
 
-    // collision check -- start 
-    var mushroomRadius = 0.03; // double check if this is a global and use that instead
-    var bulletRadius = 0.01; // double check if this is a global and use that instead
+    // BULLET COLLISION CHECK -- start 
 
     for (var bullet = 0; bullet < bullets.length; bullet++) {
 
@@ -153,8 +172,14 @@ function render() {
         for (var mushroom = 0; mushroom < mushrooms.length; mushroom++) {
             // console.log("this -- "  + bullets[bullet]);
             if (checkCollision(bullets[bullet].x, bullets[bullet].y, bulletRadius, mushrooms[mushroom].x, mushrooms[mushroom].y, mushroomRadius)){
-                console.log("We have a collision");
-                mushrooms.splice(mushroom, 1);
+                console.log("We have a collision" + mushrooms[mushroom].health);
+                mushrooms[mushroom].health--;
+
+
+                if (mushrooms[mushroom].health <= 0){
+                    mushrooms.splice(mushroom, 1);
+                }
+
                 hitMushroom = true;
                 break;
             }
@@ -169,21 +194,35 @@ function render() {
         }
 
         // check collisions against monsters TODO
-
-
         drawSingleBullet(bullets[bullet].x, bullets[bullet].y);
     }
+    //BULLET COLLISION CHECK-- end 
 
 
-
-    //collision check -- end 
 
     // 3. Move and draw player (Green)
-    moveX_JS += (speed * directionX);
-    moveY_JS += (speed * directionY);
+    var nextX = moveX_JS + (speed * directionX);
+    var nextY = moveY_JS + (speed * directionY);
 
-    moveX_JS = Math.max(minX, Math.min(maxX, moveX_JS));
-    moveY_JS = Math.max(minY, Math.min(maxY, moveY_JS));
+    nextX = Math.max(minX, Math.min(maxX, nextX));
+    nextY = Math.max(minY, Math.min(maxY, nextY));
+
+
+    // COLLISION CHECK WITH MUSHROOM; user shouldn't be able to clip through mushrooms
+    var blocked = false;
+    for (var i = 0; i <mushrooms.length; i++){
+        if (checkCollision(nextX, nextY, playerRadius, mushrooms[i].x, mushrooms[i].y, mushroomRadius)) {
+            // console.log("MUSHROOM COLLISION");
+            blocked = true;
+            break;
+        }
+    }
+
+    // can only move if we don't have a mushroom collision
+    if (!blocked) {
+        moveX_JS = nextX;
+        moveY_JS = nextY;
+    }
 
     thetaJS += (rotateSpeed * stopStartFlag);
     // todo: this is the player character 
