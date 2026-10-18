@@ -1,5 +1,14 @@
 // Xavier Wattermann
 // Project 1   
+
+// const { checkCollision } = require("./helpers");
+
+// Note: checkCollision is loaded from helpers.js in project1.html
+
+
+
+console.log(checkCollision(1,1,1,1,1,1));
+
 var gl;
 var shaderProgramSquare;
 var thetaJS;
@@ -113,24 +122,61 @@ function drawSingleBullet(x, y) {
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    // 1. Draw all mushrooms (Green)
+    // 1. Draw all mushrooms -- green 
     for (var i = 0; i < mushrooms.length; i++) {
         drawSingleOctagon(mushrooms[i].x, mushrooms[i].y, 0.0, [0.0, 1.0, 0.0, 1.0]);
     }
 
-    // 2. Update and draw bullets (Gray)
-    for (var b = 0; b < bullets.length; b++) {
-        bullets[b].y += bulletSpeed;
+    // // 2. Update and draw bullets -- gray
+    // for (var b = 0; b < bullets.length; b++) {
+    //     bullets[b].y += bulletSpeed;
 
-        // If bullet moves past the top of the screen, remove it
-        if (bullets[b].y > 1.0) {
-            bullets.splice(b, 1);
-            b--;
+    //     // If bullet moves past the top of the screen, remove it
+    //     if (bullets[b].y > 1.0) {
+    //         bullets.splice(b, 1);
+    //         b--;
+    //         continue;
+    //     }
+
+    // }
+
+    // collision check -- start 
+    var mushroomRadius = 0.03; // double check if this is a global and use that instead
+    var bulletRadius = 0.01; // double check if this is a global and use that instead
+
+    for (var bullet = 0; bullet < bullets.length; bullet++) {
+
+        bullets[bullet].y += bulletSpeed;
+
+        // check collisions against mushrooms
+        var hitMushroom = false;
+        for (var mushroom = 0; mushroom < mushrooms.length; mushroom++) {
+            // console.log("this -- "  + bullets[bullet]);
+            if (checkCollision(bullets[bullet].x, bullets[bullet].y, bulletRadius, mushrooms[mushroom].x, mushrooms[mushroom].y, mushroomRadius)){
+                console.log("We have a collision");
+                mushrooms.splice(mushroom, 1);
+                hitMushroom = true;
+                break;
+            }
+        }
+
+        // need to handle if the bullet hits or is past the screen
+        if (hitMushroom || bullets[bullet].y > 1.0) {
+            console.log("past screen or mushroom hit");
+            bullets.splice(bullet, 1);
+            bullet--;
             continue;
         }
 
-        drawSingleBullet(bullets[b].x, bullets[b].y);
+        // check collisions against monsters TODO
+
+
+        drawSingleBullet(bullets[bullet].x, bullets[bullet].y);
     }
+
+
+
+    //collision check -- end 
 
     // 3. Move and draw player (Green)
     moveX_JS += (speed * directionX);
@@ -140,7 +186,9 @@ function render() {
     moveY_JS = Math.max(minY, Math.min(maxY, moveY_JS));
 
     thetaJS += (rotateSpeed * stopStartFlag);
-    drawSingleOctagon(moveX_JS, moveY_JS, thetaJS, [0.0, 1.0, 0.0, 1.0]);
+    // todo: this is the player character 
+    // todo: rename this function to something else
+    drawSingleOctagon(moveX_JS, moveY_JS, thetaJS, [0.0, 1.0, 1.0, 1.0]);
 
     requestAnimFrame(render);
 }

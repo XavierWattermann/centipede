@@ -165,5 +165,4 @@ function moveOctagonKeys(event){
         directionY = 1.0;
         directionX = 0.0;
     }
-    // gl.uniform2f(moveUniform, moveX_JS, moveY_JS);
 }
