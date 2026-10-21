@@ -31,6 +31,13 @@ var maxX = 1.0 - playerRadius; //right
 var minY = -1.0 + playerRadius; //bottom wall
 var maxY = -0.60 - playerRadius; //top the player can go TODO: ADJUST THIS
 
+var wPressed = false;
+var aPressed = false;
+var sPressed = false;
+var dPressed = false;
+var spacePressed = false;
+var shootCooldown = 0;
+
 
 var octagonBufferId; 
 var bulletBufferId;
@@ -55,52 +62,90 @@ function gridToClip(col, row) {
 
 
 function createMushrooms() {
-    // TODO: need to limit this to 1/5 of the bottom area
+    var TARGET_NUMBER = 50; // Set to whatever number you want (e.g. 40, 80, 150)
+
     mushrooms = [];
-    var occupied = {}; // Prevents placing two mushrooms in the same cell
+    var occupied = {};
 
-    for (var r = 1; r < ROWS - 1; r++) {
-        var count = 1;
+    var attempts = 0;
+    // Keep generating random mushrooms until we reach TARGET_NUMBER
+    while (mushrooms.length < TARGET_NUMBER && attempts < 5000) {
+        attempts++;
 
-        if (r <= 3) {
-            // Bottom 2-3 rows: sparse (only 25% chance of a mushroom)
-            // TODO: change this % to even lower
-            count = Math.random() < 0.25 ? 1 : 0;
-        } else if (r >= 10 && r <= 24) {
-            // Upper-middle area: 2 mushrooms per row
-            count = 2;
-        } else {
-            // Middle/upper field: 1 mushroom per row
-            count = 1;
-        }
+        var c = Math.floor(Math.random() * COLS);
+        // Rows 6 to 28 (keeps bottom 1/5th clear for the player)
+        var r = Math.floor(Math.random() * (ROWS - 7)) + 6;
 
-        // Pick unique random columns for row 'r'
-        var placed = 0;
-        var attempts = 0;
-        while (placed < count && attempts < 50) {
-            var c = Math.floor(Math.random() * COLS);
-            var key = c + "," + r;
+        var key = c + "," + r;
+        if (!occupied[key]) {
+            occupied[key] = true;
+            var clipPos = gridToClip(c, r);
 
-            if (!occupied[key]) {
-                occupied[key] = true;
-                var clipPos = gridToClip(c, r);
-
-                mushrooms.push({
-                    col: c,
-                    row: r,
-                    x: clipPos.x,
-                    y: clipPos.y,
-                    health: 3 // real game uses 4, but this seems more suitable? 
-                });
-                placed++;
-            }
-            attempts++;
+            mushrooms.push({
+                col: c,
+                row: r,
+                x: clipPos.x,
+                y: clipPos.y,
+                health: 3
+            });
         }
     }
 
-    // Buffer the octagon geometry once
+    // Buffer the octagon geometry once onto the GPU
     setupOctagon();
 }
+
+// function createMushrooms() {
+//     // TODO: need to limit this to 1/5 of the bottom area
+//     mushrooms = [];
+//     var occupied = {}; // Prevents placing two mushrooms in the same cell
+
+//     for (var r = 1; r < ROWS - 1; r++) {
+//     // for (var r = 1; r < ROWS - 1; r++) {
+//         var count = 1;
+//         if (mushrooms.length >= 500) break
+
+//         if (r <= 3) {
+//             // Bottom 2-3 rows: sparse (only 25% chance of a mushroom)
+//             // TODO: change this % to even lower
+//             count = Math.random() < 0.25 ? 1 : 0;
+//         } else if (r >= 10 && r <= 24) {
+//             // Upper-middle area: 2 mushrooms per row
+//             count = 2;
+//         } else {
+//             // Middle/upper field: 1 mushroom per row
+//             count = 1;
+//         }
+
+
+//         // Pick unique random columns for row 'r'
+//         var placed = 0;
+//         var attempts = 0;
+//         while (placed < count && attempts < 50) {
+//             var c = Math.floor(Math.random() * COLS);
+//             var key = c + "," + r;
+            
+
+//             if (!occupied[key]) {
+//                 occupied[key] = true;
+//                 var clipPos = gridToClip(c, r);
+
+//                 mushrooms.push({
+//                     col: c,
+//                     row: r,
+//                     x: clipPos.x,
+//                     y: clipPos.y,
+//                     health: 3 // real game uses 4, but this seems more suitable? 
+//                 });
+//                 placed++;
+//             }
+//             attempts++;
+//         }
+//     }
+
+//     // Buffer the octagon geometry once
+//     setupOctagon();
+// }
 
 function drawSingleOctagon(x, y, theta, color) {
     gl.bindBuffer(gl.ARRAY_BUFFER, octagonBufferId);
@@ -161,6 +206,18 @@ function render() {
 
     // }
 
+    // Fire if spacebar is held and cooldown has reset
+    if (shootCooldown > 0) {
+        shootCooldown--;
+    }
+    if (spacePressed && shootCooldown === 0) {
+        bullets.push({
+            x: moveX_JS,
+            y: moveY_JS
+        });
+        shootCooldown = 10; // ~4 shots per second (at 60fps). Lower = faster fire rate
+    }
+
     // BULLET COLLISION CHECK -- start 
 
     for (var bullet = 0; bullet < bullets.length; bullet++) {
@@ -199,8 +256,10 @@ function render() {
     //BULLET COLLISION CHECK-- end 
 
 
+    // Handle movement
+    directionX = aPressed ? -1.0 : (dPressed ? 1.0 : 0.0);
+    directionY = wPressed ? 1.0 : (sPressed ? -1.0 : 0.0);
 
-    // 3. Move and draw player (Green)
     var nextX = moveX_JS + (speed * directionX);
     var nextY = moveY_JS + (speed * directionY);
 
@@ -367,14 +426,14 @@ function drawOctagon() {
 }
 
 
-function stopOrStartAnim() {
-    if (stopStartFlag < 0.5) {
-        stopStartFlag = 1.0;
-    }
-    else {
-        stopStartFlag = 0.0;
-    }
-}
+// function stopOrStartAnim() {
+//     if (stopStartFlag < 0.5) {
+//         stopStartFlag = 1.0;
+//     }
+//     else {
+//         stopStartFlag = 0.0;
+//     }
+// }
 
 function moveOctagon(event){
     console.log("Currently not doing anything with mouse clicks");
@@ -387,35 +446,33 @@ function moveOctagon(event){
 
 }
 
-function moveOctagonKeys(event){
+
+function movePlayer(event, keyDirection){
     var theKeyCode = event.keyCode;
 
-    // MOVEMENT ====================================
+    // MOVEMENT =================================================
     if (theKeyCode == 65 || theKeyCode == 37){ // a key || left arrow
-        directionX = -1.0;
-        directionY = 0.0;
+        aPressed = true ? keyDirection === 'down' : false;
     }
     else if (theKeyCode == 68 || theKeyCode == 39){ // d key || right arrow
-        directionX = 1.0;
-        directionY = 0.0;
+        dPressed = true ? keyDirection === 'down' : false;
     }
     else if (theKeyCode == 83 || theKeyCode == 40){ // s key || down
-        directionY = -1.0;
-        directionX = 0.0;
+        sPressed = true ? keyDirection === 'down' : false;
     }
     else if (theKeyCode == 87 || theKeyCode == 38){ // w key || up
-        directionY = 1.0;
-        directionX = 0.0;
+        wPressed = true ? keyDirection === 'down' : false;
     }
-    // ====================================
+    // ==============================================================
     // SPACE BAR -- SHOOTING
     if (theKeyCode == 32) {
         event.preventDefault(); //handles to stop the page scrollign 
-        bullets.push({
-            x: moveX_JS,
-            // y: moveY_JS + playerRadius 
-            y: moveY_JS 
-        });
+        spacePressed = (keyDirection === 'down');
+        // bullets.push({
+        //     x: moveX_JS,
+        //     // y: moveY_JS + playerRadius 
+        //     y: moveY_JS 
+        // });
     }
 
     
