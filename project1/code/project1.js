@@ -1,6 +1,7 @@
 // Xavier Wattermann
 // Project 1   
 
+
 // Note: checkCollision is loaded from helpers.js in project1.html
 
 
@@ -31,13 +32,14 @@ var maxX = 1.0 - playerRadius; //right
 var minY = -1.0 + playerRadius; //bottom wall
 var maxY = -0.60 - playerRadius; //top the player can go TODO: ADJUST THIS
 
+var bugs = []; //array to hold all of the different types of bugs
+
 var wPressed = false;
 var aPressed = false;
 var sPressed = false;
 var dPressed = false;
 var spacePressed = false;
 var shootCooldown = 0;
-
 
 var octagonBufferId; 
 var bulletBufferId;
@@ -58,6 +60,10 @@ function gridToClip(col, row) {
         x: -1.0 + (col + 0.5) * cellWidth,
         y: -1.0 + (row + 0.5) * cellHeight
     };
+}
+
+function spawnFlea() {
+    bugs.push(new Flea());
 }
 
 
@@ -160,7 +166,7 @@ function drawSingleBullet(x, y) {
     gl.vertexAttribPointer(myPositionAttribute, 2, gl.FLOAT, false, 0, 0);
     gl.uniform2f(moveUniform, x, y);
     gl.uniform1f(thetaUniform, 0.0); // Bullets travel straight vertical
-    gl.uniform4f(colorUniform, 0.7, 0.7, 0.7, 1.0); // Gray color
+    gl.uniform4f(colorUniform, 0.7, 0.7, 0.7, 1.0); // Gray 
     gl.drawArrays(gl.LINES, 0, 2);
 }
 
@@ -184,6 +190,7 @@ function mushroomHealthColor(health) {
 }
 
 function render() {
+    // console.log(bugs.length) // use this to double check how many bugs we have
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     // 1. Draw all mushrooms -- green 
@@ -215,42 +222,46 @@ function render() {
             x: moveX_JS,
             y: moveY_JS
         });
-        shootCooldown = 10; // ~4 shots per second (at 60fps). Lower = faster fire rate
+        // lower number == faster fire rate; TODO: make this param
+        shootCooldown = 7; 
     }
 
     // BULLET COLLISION CHECK -- start 
 
     for (var bullet = 0; bullet < bullets.length; bullet++) {
-
         bullets[bullet].y += bulletSpeed;
-
-        // check collisions against mushrooms
-        var hitMushroom = false;
+        var hitTarget = false;
+        // 1. Check collisions against mushrooms
         for (var mushroom = 0; mushroom < mushrooms.length; mushroom++) {
-            // console.log("this -- "  + bullets[bullet]);
-            if (checkCollision(bullets[bullet].x, bullets[bullet].y, bulletRadius, mushrooms[mushroom].x, mushrooms[mushroom].y, mushroomRadius)){
-                console.log("We have a collision" + mushrooms[mushroom].health);
+            if (checkCollision(bullets[bullet].x, bullets[bullet].y, bulletRadius, mushrooms[mushroom].x, mushrooms[mushroom].y, mushroomRadius)) {
                 mushrooms[mushroom].health--;
-
-
-                if (mushrooms[mushroom].health <= 0){
+                if (mushrooms[mushroom].health <= 0) {
                     mushrooms.splice(mushroom, 1);
                 }
-
-                hitMushroom = true;
+                hitTarget = true;
                 break;
             }
         }
-
-        // need to handle if the bullet hits or is past the screen
-        if (hitMushroom || bullets[bullet].y > 1.0) {
-            console.log("past screen or mushroom hit");
+        // 2. Check collisions against bugs (only if bullet hasn't already hit a mushroom)
+        if (!hitTarget) {
+            for (var b = 0; b < bugs.length; b++) {
+                if (checkCollision(bullets[bullet].x, bullets[bullet].y, bulletRadius, bugs[b].x, bugs[b].y, bugs[b].radius)) {
+                    bugs[b].takeDamage(1);
+                    if (bugs[b].isDead()) {
+                        bugs.splice(b, 1); // Remove the dead bug
+                    }
+                    hitTarget = true;
+                    break; // Stop checking other bugs for this bullet
+                }
+            }
+        }
+        // 3. Remove bullet if it hit anything or left the screen
+        if (hitTarget || bullets[bullet].y > 1.0) {
             bullets.splice(bullet, 1);
             bullet--;
             continue;
         }
-
-        // check collisions against monsters TODO
+        // 4. Otherwise, draw the bullet
         drawSingleBullet(bullets[bullet].x, bullets[bullet].y);
     }
     //BULLET COLLISION CHECK-- end 
@@ -265,6 +276,22 @@ function render() {
 
     nextX = Math.max(minX, Math.min(maxX, nextX));
     nextY = Math.max(minY, Math.min(maxY, nextY));
+
+    // FLEA RENDERING 
+
+    for (var i = 0; i < bugs.length; i++) {
+        var bug = bugs[i];
+
+        bug.update();
+
+        if (bug.isOffScreen()) {
+            bugs.splice(i, 1);
+            i--;
+            continue;
+        }
+
+        drawSingleOctagon(bug.x, bug.y, 0.0, bug.color);
+    }
 
 
     // COLLISION CHECK WITH MUSHROOM; user shouldn't be able to clip through mushrooms
@@ -357,6 +384,8 @@ function init() {
 
     // Force the WebGL context to clear the color buffer
     gl.clear( gl.COLOR_BUFFER_BIT );
+
+    spawnFlea(); // TODO; update logic here
 
     createMushrooms();
     setupBullet();
