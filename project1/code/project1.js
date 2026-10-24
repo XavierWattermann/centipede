@@ -208,8 +208,8 @@ function fleaHealthColor(health) {
     return healthy;
 }
 
-// this might be generalized for all bugs
-function fleaPlayerCollisionCheck(bug){
+function bugPlayerCollisionCheck(bug){
+    // Checks if the player has collided with any bug -- resulting in losing a life
     if (checkCollision(moveX_JS, moveY_JS, playerRadius, bug.x, bug.y, bug.radius)){
         console.log("HIT BY BUG");
     }
@@ -297,7 +297,7 @@ function render() {
         bug.update();
 
         // player collision check
-        fleaPlayerCollisionCheck(bug);
+        bugPlayerCollisionCheck(bug);
 
         if (bug.isOffScreen()) {
             bugs.splice(i, 1);
@@ -305,8 +305,14 @@ function render() {
             continue;
         }
 
-        var fleaColor = fleaHealthColor(bug.health)
-        drawSingleOctagon(bug.x, bug.y, 0.0, fleaColor);
+        if (bug.name === "Flea"){
+            var bugColor = fleaHealthColor(bug.health)
+        }
+        else if (bug.name === "Spider"){
+            var bugColor = [0.5, 0.5, 0.2, 1.0];
+        }
+        
+        drawSingleOctagon(bug.x, bug.y, 0.0, bugColor);
     }
 
 
