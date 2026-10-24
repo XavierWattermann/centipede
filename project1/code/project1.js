@@ -1,6 +1,8 @@
 // Xavier Wattermann
 // Project 1   
 
+//const { checkCollision } = require("./helpers");
+
 
 // Note: checkCollision is loaded from helpers.js in project1.html
 
@@ -64,6 +66,10 @@ function gridToClip(col, row) {
 
 function spawnFlea() {
     bugs.push(new Flea());
+}
+
+function spawnSpider() {
+    bugs.push(new Spider());
 }
 
 
@@ -189,6 +195,26 @@ function mushroomHealthColor(health) {
     return healthy;
 }
 
+function fleaHealthColor(health) {
+    var healthy = [0.9, 0.2, 0.9, 1.0];
+    // var oneHit = [0.8, 0.2, 0.8, 1.0];
+    var oneHit = [1.0, 1.0, 1.0, 1.0];
+    if (health === 2 ) {
+        return healthy;
+    }
+    else if (health === 1){
+        return oneHit;
+    }
+    return healthy;
+}
+
+// this might be generalized for all bugs
+function fleaPlayerCollisionCheck(bug){
+    if (checkCollision(moveX_JS, moveY_JS, playerRadius, bug.x, bug.y, bug.radius)){
+        console.log("HIT BY BUG");
+    }
+}
+
 function render() {
     // console.log(bugs.length) // use this to double check how many bugs we have
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -199,19 +225,6 @@ function render() {
         var mushroomColor = mushroomHealthColor(mushrooms[i].health);
         drawSingleOctagon(mushrooms[i].x, mushrooms[i].y, 0.0, mushroomColor);
     }
-
-    // // 2. Update and draw bullets -- gray
-    // for (var b = 0; b < bullets.length; b++) {
-    //     bullets[b].y += bulletSpeed;
-
-    //     // If bullet moves past the top of the screen, remove it
-    //     if (bullets[b].y > 1.0) {
-    //         bullets.splice(b, 1);
-    //         b--;
-    //         continue;
-    //     }
-
-    // }
 
     // Fire if spacebar is held and cooldown has reset
     if (shootCooldown > 0) {
@@ -227,11 +240,10 @@ function render() {
     }
 
     // BULLET COLLISION CHECK -- start 
-
     for (var bullet = 0; bullet < bullets.length; bullet++) {
         bullets[bullet].y += bulletSpeed;
         var hitTarget = false;
-        // 1. Check collisions against mushrooms
+        // Check collisions against mushrooms
         for (var mushroom = 0; mushroom < mushrooms.length; mushroom++) {
             if (checkCollision(bullets[bullet].x, bullets[bullet].y, bulletRadius, mushrooms[mushroom].x, mushrooms[mushroom].y, mushroomRadius)) {
                 mushrooms[mushroom].health--;
@@ -242,7 +254,7 @@ function render() {
                 break;
             }
         }
-        // 2. Check collisions against bugs (only if bullet hasn't already hit a mushroom)
+        // Check collisions against bugs (only if bullet hasn't already hit a mushroom)
         if (!hitTarget) {
             for (var b = 0; b < bugs.length; b++) {
                 if (checkCollision(bullets[bullet].x, bullets[bullet].y, bulletRadius, bugs[b].x, bugs[b].y, bugs[b].radius)) {
@@ -255,16 +267,16 @@ function render() {
                 }
             }
         }
-        // 3. Remove bullet if it hit anything or left the screen
+        // Remove bullet if it hit anything or left the screen
         if (hitTarget || bullets[bullet].y > 1.0) {
             bullets.splice(bullet, 1);
             bullet--;
             continue;
         }
-        // 4. Otherwise, draw the bullet
+        // draw the bullet
         drawSingleBullet(bullets[bullet].x, bullets[bullet].y);
-    }
-    //BULLET COLLISION CHECK-- end 
+    } //BULLET COLLISION CHECK -- end 
+    
 
 
     // Handle movement
@@ -277,12 +289,15 @@ function render() {
     nextX = Math.max(minX, Math.min(maxX, nextX));
     nextY = Math.max(minY, Math.min(maxY, nextY));
 
-    // FLEA RENDERING 
+    // FLEA / BUGS RENDERING 
 
     for (var i = 0; i < bugs.length; i++) {
         var bug = bugs[i];
 
         bug.update();
+
+        // player collision check
+        fleaPlayerCollisionCheck(bug);
 
         if (bug.isOffScreen()) {
             bugs.splice(i, 1);
@@ -290,7 +305,8 @@ function render() {
             continue;
         }
 
-        drawSingleOctagon(bug.x, bug.y, 0.0, bug.color);
+        var fleaColor = fleaHealthColor(bug.health)
+        drawSingleOctagon(bug.x, bug.y, 0.0, fleaColor);
     }
 
 

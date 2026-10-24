@@ -51,6 +51,36 @@ class Flea {
 
 }
 
+class Spider {
+    constructor() {
+        var column = 10;
+        var pos = gridToClip(column, 0);
+
+        this.name = "Spider";
+        this.x = pos.x;
+        this.y = 0.0; // adjust this
+        this.speed = 0.02;
+        this.radius = 0.05;
+        this.health = 1; 
+        this.color = [0.5, 0.5, 0.2, 1.0]; //adjust this
+    }
+    update() {
+        this.y -= this.speed; // todo adjust this
+    }
+
+    takeDamage(amount) {
+        this.health -= amount; 
+    }
+
+    isDead(){
+        return this.health <= 0;
+    }
+
+    isOffScreen() {
+        return this.y < -1.1;
+    }
+}
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { checkCollision, checkCollisions };
 }
