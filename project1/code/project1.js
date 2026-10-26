@@ -1,12 +1,10 @@
 // Xavier Wattermann
 // Project 1   
 
+
+// const { Centipede } = require("./helpers");
+
 //const { checkCollision } = require("./helpers");
-
-
-// Note: checkCollision is loaded from helpers.js in project1.html
-
-
 
 console.log(checkCollision(1,1,1,1,1,1));
 
@@ -50,6 +48,11 @@ var bullets = []
 var bulletSpeed = 0.04;
 
 var mushrooms = [];
+var centipedes = []
+// centipedes.push(new Centipede(12));
+
+// todo: move this
+
 
 // size of the clipspace / canvas 
 var COLS = 30;
@@ -64,17 +67,35 @@ function gridToClip(col, row) {
     };
 }
 
-function spawnFlea() {
-    bugs.push(new Flea());
-}
 
-function spawnSpider() {
-    bugs.push(new Spider());
+function spawnBug(bugName){
+    var bug;
+    var renderBug = true;
+
+    if(bugName === 'Flea'){
+        bug = new Flea();
+    }
+    else if (bugName === 'Spider'){
+        bug = new Spider();
+    }
+    else if (bugName === 'Scorpion'){
+        bug = new Scorpion();
+    }
+    else if (bugName === 'Centipede'){
+        renderBug = false;
+        centipedes.push(new Centipede(12));
+    }
+
+    if (renderBug){
+        bugs.push(bug)
+    }
+
+
 }
 
 
 function createMushrooms() {
-    var TARGET_NUMBER = 50; // Set to whatever number you want (e.g. 40, 80, 150)
+    var TARGET_NUMBER = 50; 
 
     mushrooms = [];
     var occupied = {};
@@ -216,7 +237,7 @@ function bugPlayerCollisionCheck(bug){
 }
 
 function render() {
-    // console.log(bugs.length) // use this to double check how many bugs we have
+    // console.log(bugs.length, bugs) // use this to double check how many bugs we have
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     // 1. Draw all mushrooms -- green 
@@ -267,6 +288,40 @@ function render() {
                 }
             }
         }
+        // check collision against centipede (need different logic compared to bugs above)
+        // console.log(centipedes
+        if (!hitTarget) {
+            for (var c = 0; c < centipedes.length; c++) {
+                var centipede = centipedes[c];
+                for (var s = 0; s < centipede.segments.length; s++) {
+                    var seg = centipede.segments[s];
+                    if (checkCollision(bullets[bullet].x, bullets[bullet].y, bulletRadius, seg.x, seg.y, seg.radius)) {
+                        console.log("Bullet collision with centipede segment", s);
+                        // 1. Turn the destroyed segment into a mushroom!
+                        // mushrooms.push({
+                        //     col: seg.col,
+                        //     row: seg.row,
+                        //     x: seg.x,
+                        //     y: seg.y,
+                        //     health: 3
+                        // });
+                        // 2. Remove the shot segment
+                        centipede.segments.splice(s, 1);
+                        // 3. If this centipede has no segments left, remove it
+                        if (centipede.segments.length === 0) {
+                            centipedes.splice(c, 1);
+                            c--;
+                        }
+                        hitTarget = true;
+                        break; // Stop checking other segments for this bullet
+                    }
+                }
+                if (hitTarget) {
+                    break; // Stop checking other centipedes for this bullet
+                }
+            }
+        }
+
         // Remove bullet if it hit anything or left the screen
         if (hitTarget || bullets[bullet].y > 1.0) {
             bullets.splice(bullet, 1);
@@ -311,8 +366,17 @@ function render() {
         else if (bug.name === "Spider"){
             var bugColor = [0.5, 0.5, 0.2, 1.0];
         }
-        
+        else if (bug.name === "Scorpion"){
+            var bugColor = [0.5, 0.5, 0.2, 1.0];
+        }
+
         drawSingleOctagon(bug.x, bug.y, 0.0, bugColor);
+    }
+
+    // CENTIPEDE RENDERING
+    for (var c = 0; c < centipedes.length; c++){
+        centipedes[c].update();
+        centipedes[c].draw();
     }
 
 
@@ -407,8 +471,10 @@ function init() {
     // Force the WebGL context to clear the color buffer
     gl.clear( gl.COLOR_BUFFER_BIT );
 
-    spawnFlea(); // TODO; update logic here
+    spawnBug('Flea');
+    spawnBug('Spider');
 
+    centipedes.push(new Centipede(12));
     createMushrooms();
     setupBullet();
     render();

@@ -1,0 +1,48 @@
+.docname {Project 1}
+.docdescription {Project 1 CEG6500 - Computer Graphics}
+.doctype {plain}
+.theme {paperwhite} layout:{latex}
+
+.docauthors
+  - Xavier Wattermann
+
+.tableofcontents 
+
+# CEG6500 - Computer Graphics - Project 1 Report 
+## Xavier Wattermann (U00743411 / w001xnw / [wattermann.2@wright.edu](mailto:wattermann.2@wright.edu) ))
+
+## Introduction
+
+This report goes over my Project 1, a WebGL game version of the 1981 "Centipede" which was developed and published by Atari.
+
+This document will give a brief historical summary of the game itself, gameplay and controls, and then a technical breakdown how certain elements of the game were programmed or otherwise designed.
+
+
+## Background Information 
+
+### Centipede History
+
+### Centipede Gameplay
+
+Centipede features the player (called the "Bug Blaster") who can move in the lower half 
+
+### Differences  
+
+There are some differences in my version of Centipede version the main Atari version. Some of these differences are subtle (e.g, visual differences), while others are deliberate design differences due to 1) Not knowing the exact values used in the original game (player speed, for example) or 2) Adjustments to make the game more fun, *in my opinion*
+
+ - player speed
+
+ - bullet shooting -> In the Atari version, the player is allowed to shoot 1 bullet; only one bullet is present on the screen at a given time. Meaning, if you miss your intended target (e.g, a bug or mushroom), you have to wait for that bullet to pass the top of the screen before you can shoot again. I made my version not have this *design / gameplay decision*, and instead allow the player to shoot more often. My bullet speed is controlled by a variable.
+
+ - Textures -> In the original game, all of the visual elements (the player, mushrooms, bugs, etc) are distinct and look like their intended representation (as much as one should expect from a game from the early 1980's). My version uses simple shapes to represent these different elements, for both a time constraint and technical skill.
+
+ - Bug Behavior
+   - In the Atari version, the bugs (centipede, flea, spider and scorpion) have clear and distinct movement patters.
+
+## Controls
+
+## Technical Details
+
+## Citations & References
+
+
