@@ -41,7 +41,9 @@ var dPressed = false;
 var spacePressed = false;
 var shootCooldown = 0;
 
-var octagonBufferId; 
+var playerBufferId; // this is for the player character
+var octagonBufferId; // mushrooms & centipede 
+var spiderBufferId; // for spider
 var bulletBufferId;
 var myPositionAttribute; //need to refactor this
 var bullets = []
@@ -227,15 +229,17 @@ function bugRendering(){
 
         if (bug.name === "Flea"){
             var bugColor = fleaHealthColor(bug.health)
+            drawSingleOctagon(bug.x, bug.y, 0.0, bugColor);
         }
         else if (bug.name === "Spider"){
             var bugColor = [0.5, 0.5, 0.2, 1.0];
+            drawSpiderTrapezoid(bug.x, bug.y, 0.0,[0.9, 0.6, 0.1, 1.0]); 
         }
         else if (bug.name === "Scorpion"){
             var bugColor = [0.5, 0.5, 0.2, 1.0];
+            drawSingleOctagon(bug.x, bug.y, 0.0, bugColor);
         }
 
-        drawSingleOctagon(bug.x, bug.y, 0.0, bugColor);
     }
 
     // CENTIPEDE RENDERING
@@ -365,7 +369,9 @@ function render() {
 
     // todo: this is the player character 
     // todo: rename this function to something else
-    drawSingleOctagon(moveX_JS, moveY_JS, thetaJS, [0.0, 1.0, 1.0, 1.0]);
+    // drawSingleOctagon(moveX_JS, moveY_JS, thetaJS, [0.0, 1.0, 1.0, 1.0]);
+    drawPlayerTriangle(moveX_JS, moveY_JS, 0.0, [0.0, 1.0, 1.0, 1.0]);
+
 
     requestAnimFrame(render);
 }
@@ -443,6 +449,8 @@ function init() {
     centipedes.push(new Centipede(12));
     createMushrooms();
     setupBullet();
+    setupPlayerTriangle();
+    setupSpiderTrapezoid();
     render();
 
 }
@@ -457,6 +465,51 @@ function setupBullet() {
     bulletBufferId = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bulletBufferId);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(linePoints), gl.STATIC_DRAW);
+}
+
+function setupPlayerTriangle() {
+    var r = playerRadius; // 0.03
+    var trianglePoints = [
+        vec2(0.0, r),      
+        vec2(-r, -r),      
+        vec2(r, -r)        
+    ];
+    playerBufferId = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, playerBufferId);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(trianglePoints), gl.STATIC_DRAW);
+}
+
+function drawPlayerTriangle(x, y, theta, color) {
+    color = color || [0.0, 1.0, 1.0, 1.0]; // Default cyan/blue
+    gl.bindBuffer(gl.ARRAY_BUFFER, playerBufferId);
+    gl.vertexAttribPointer(myPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+    gl.uniform2f(moveUniform, x, y);
+    gl.uniform1f(thetaUniform, theta);
+    gl.uniform4fv(colorUniform, color);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+}
+
+function drawSpiderTrapezoid(x, y, theta, color) {
+    color = color || [0.9, 0.6, 0.1, 1.0]; // Default spider color
+    gl.bindBuffer(gl.ARRAY_BUFFER, spiderBufferId);
+    gl.vertexAttribPointer(myPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+    gl.uniform2f(moveUniform, x, y);
+    gl.uniform1f(thetaUniform, theta);
+    gl.uniform4fv(colorUniform, color);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+}
+
+function setupSpiderTrapezoid() {
+    var trapezoidPoints = [
+        vec2(-0.025,  0.03), // Top-left
+        vec2(-0.045, -0.03), // Bottom-left
+        vec2( 0.045, -0.03), // Bottom-right
+        vec2( 0.025,  0.03)  // Top-right
+    ];
+
+    spiderBufferId = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, spiderBufferId);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(trapezoidPoints), gl.STATIC_DRAW);
 }
 
 function setupOctagon() {
