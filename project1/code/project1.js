@@ -93,11 +93,25 @@ function spawnBug(bugName){
 
 }
 
+function handleShooting(){
+        // Fire if spacebar is held and cooldown has reset
+    if (shootCooldown > 0) {
+        shootCooldown--;
+    }
+    if (spacePressed && shootCooldown === 0) {
+        bullets.push({
+            x: moveX_JS,
+            y: moveY_JS
+        });
+        // lower number == faster fire rate; TODO: make this param
+        shootCooldown = 7; 
+    }
+}
+
 
 function createMushrooms() {
-    var TARGET_NUMBER = 50; 
+    var TARGET_NUMBER = 60; 
 
-    mushrooms = [];
     var occupied = {};
 
     var attempts = 0;
@@ -119,7 +133,7 @@ function createMushrooms() {
                 row: r,
                 x: clipPos.x,
                 y: clipPos.y,
-                health: 3
+                health: 4
             });
         }
     }
@@ -127,58 +141,6 @@ function createMushrooms() {
     // Buffer the octagon geometry once onto the GPU
     setupOctagon();
 }
-
-// function createMushrooms() {
-//     // TODO: need to limit this to 1/5 of the bottom area
-//     mushrooms = [];
-//     var occupied = {}; // Prevents placing two mushrooms in the same cell
-
-//     for (var r = 1; r < ROWS - 1; r++) {
-//     // for (var r = 1; r < ROWS - 1; r++) {
-//         var count = 1;
-//         if (mushrooms.length >= 500) break
-
-//         if (r <= 3) {
-//             // Bottom 2-3 rows: sparse (only 25% chance of a mushroom)
-//             // TODO: change this % to even lower
-//             count = Math.random() < 0.25 ? 1 : 0;
-//         } else if (r >= 10 && r <= 24) {
-//             // Upper-middle area: 2 mushrooms per row
-//             count = 2;
-//         } else {
-//             // Middle/upper field: 1 mushroom per row
-//             count = 1;
-//         }
-
-
-//         // Pick unique random columns for row 'r'
-//         var placed = 0;
-//         var attempts = 0;
-//         while (placed < count && attempts < 50) {
-//             var c = Math.floor(Math.random() * COLS);
-//             var key = c + "," + r;
-            
-
-//             if (!occupied[key]) {
-//                 occupied[key] = true;
-//                 var clipPos = gridToClip(c, r);
-
-//                 mushrooms.push({
-//                     col: c,
-//                     row: r,
-//                     x: clipPos.x,
-//                     y: clipPos.y,
-//                     health: 3 // real game uses 4, but this seems more suitable? 
-//                 });
-//                 placed++;
-//             }
-//             attempts++;
-//         }
-//     }
-
-//     // Buffer the octagon geometry once
-//     setupOctagon();
-// }
 
 function drawSingleOctagon(x, y, theta, color) {
     gl.bindBuffer(gl.ARRAY_BUFFER, octagonBufferId);
@@ -199,19 +161,23 @@ function drawSingleBullet(x, y) {
 
 function mushroomHealthColor(health) {
     // function to return the color of the mushroom based on it's health (how many hits it has)
-    // default (3) is green, 2 is yellow, 1 is red, and 0 means it should be removed from the screen
+    // default (4) is green, 3 is yellow, 2 is orange, 1 is red, and 0 means it should be removed from the screen
     // returns an array of the color to use
-    var healthy = [0.0, 1.0, 0.0, 1.0]
-    var oneHit = [1.0, 1.0, 0.0, 1.0];
-    var twoHit = [1.0, 0.2, 0.2, 1.0];
-    if (health === 3 ) {
+    var healthy  = [0.0, 1.0, 0.0, 1.0]; // Pure Green
+    var oneHit   = [1.0, 1.0, 0.0, 1.0]; // Pure Yellow
+    var twoHit   = [1.0, 0.5, 0.0, 1.0]; // Orange (full red, half green)
+    var threeHit = [1.0, 0.0, 0.0, 1.0]; // Pure Red
+    if (health === 4 ) {
         return healthy;
     }
-    else if (health === 2){
+    else if (health === 3){
         return oneHit;
     }
-    else if (health === 1){
+    else if (health === 2){
         return twoHit;
+    }
+    else if (health === 1){
+        return threeHit;
     }
     return healthy;
 }
@@ -236,31 +202,80 @@ function bugPlayerCollisionCheck(bug){
     }
 }
 
-function render() {
-    // console.log(bugs.length, bugs) // use this to double check how many bugs we have
-    gl.clear(gl.COLOR_BUFFER_BIT);
-
-    // 1. Draw all mushrooms -- green 
+function mushroomRendering(){
     for (var i = 0; i < mushrooms.length; i++) {
-        // console.log(mushroom[i])
         var mushroomColor = mushroomHealthColor(mushrooms[i].health);
         drawSingleOctagon(mushrooms[i].x, mushrooms[i].y, 0.0, mushroomColor);
     }
+}
 
-    // Fire if spacebar is held and cooldown has reset
-    if (shootCooldown > 0) {
-        shootCooldown--;
-    }
-    if (spacePressed && shootCooldown === 0) {
-        bullets.push({
-            x: moveX_JS,
-            y: moveY_JS
-        });
-        // lower number == faster fire rate; TODO: make this param
-        shootCooldown = 7; 
+function bugRendering(){
+    // handles bug and centipede rendering
+    for (var i = 0; i < bugs.length; i++) {
+        var bug = bugs[i];
+
+        bug.update();
+
+        // player collision check
+        bugPlayerCollisionCheck(bug);
+
+        if (bug.isOffScreen()) {
+            bugs.splice(i, 1);
+            i--;
+            continue;
+        }
+
+        if (bug.name === "Flea"){
+            var bugColor = fleaHealthColor(bug.health)
+        }
+        else if (bug.name === "Spider"){
+            var bugColor = [0.5, 0.5, 0.2, 1.0];
+        }
+        else if (bug.name === "Scorpion"){
+            var bugColor = [0.5, 0.5, 0.2, 1.0];
+        }
+
+        drawSingleOctagon(bug.x, bug.y, 0.0, bugColor);
     }
 
-    // BULLET COLLISION CHECK -- start 
+    // CENTIPEDE RENDERING
+    for (var c = 0; c < centipedes.length; c++){
+        centipedes[c].update();
+        centipedes[c].draw();
+    }
+
+
+
+}
+
+function mushroomCollisionCheck(){
+    // COLLISION CHECK WITH MUSHROOM; user shouldn't be able to clip through mushrooms
+    directionX = aPressed ? -1.0 : (dPressed ? 1.0 : 0.0);
+    directionY = wPressed ? 1.0 : (sPressed ? -1.0 : 0.0);
+
+    var nextX = moveX_JS + (speed * directionX);
+    var nextY = moveY_JS + (speed * directionY);
+
+    nextX = Math.max(minX, Math.min(maxX, nextX));
+    nextY = Math.max(minY, Math.min(maxY, nextY));
+    var blocked = false;
+    for (var i = 0; i <mushrooms.length; i++){
+        if (checkCollision(nextX, nextY, playerRadius, mushrooms[i].x, mushrooms[i].y, mushroomRadius)) {
+            // console.log("MUSHROOM COLLISION");
+            blocked = true;
+            break;
+        }
+    }
+
+    // can only move if we don't have a mushroom collision
+    if (!blocked) {
+        moveX_JS = nextX;
+        moveY_JS = nextY;
+    }
+}
+
+function bulletCollisionCheck(){
+ // BULLET COLLISION CHECK -- start 
     for (var bullet = 0; bullet < bullets.length; bullet++) {
         bullets[bullet].y += bulletSpeed;
         var hitTarget = false;
@@ -297,14 +312,14 @@ function render() {
                     var seg = centipede.segments[s];
                     if (checkCollision(bullets[bullet].x, bullets[bullet].y, bulletRadius, seg.x, seg.y, seg.radius)) {
                         console.log("Bullet collision with centipede segment", s);
-                        // 1. Turn the destroyed segment into a mushroom!
-                        // mushrooms.push({
-                        //     col: seg.col,
-                        //     row: seg.row,
-                        //     x: seg.x,
-                        //     y: seg.y,
-                        //     health: 3
-                        // });
+                        // destroyed centipede -> new mushroom
+                        mushrooms.push({
+                            col: seg.col,
+                            row: seg.row,
+                            x: seg.x,
+                            y: seg.y,
+                            health: 4
+                        });
                         // 2. Remove the shot segment
                         centipede.segments.splice(s, 1);
                         // 3. If this centipede has no segments left, remove it
@@ -331,72 +346,23 @@ function render() {
         // draw the bullet
         drawSingleBullet(bullets[bullet].x, bullets[bullet].y);
     } //BULLET COLLISION CHECK -- end 
-    
+}
+
+function render() {
+    // console.log(bugs.length, bugs) // use this to double check how many bugs we have
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    mushroomRendering();
+
+    handleShooting();
+
+    bulletCollisionCheck();
+
+    bugRendering();
+
+    mushroomCollisionCheck();
 
 
-    // Handle movement
-    directionX = aPressed ? -1.0 : (dPressed ? 1.0 : 0.0);
-    directionY = wPressed ? 1.0 : (sPressed ? -1.0 : 0.0);
-
-    var nextX = moveX_JS + (speed * directionX);
-    var nextY = moveY_JS + (speed * directionY);
-
-    nextX = Math.max(minX, Math.min(maxX, nextX));
-    nextY = Math.max(minY, Math.min(maxY, nextY));
-
-    // FLEA / BUGS RENDERING 
-
-    for (var i = 0; i < bugs.length; i++) {
-        var bug = bugs[i];
-
-        bug.update();
-
-        // player collision check
-        bugPlayerCollisionCheck(bug);
-
-        if (bug.isOffScreen()) {
-            bugs.splice(i, 1);
-            i--;
-            continue;
-        }
-
-        if (bug.name === "Flea"){
-            var bugColor = fleaHealthColor(bug.health)
-        }
-        else if (bug.name === "Spider"){
-            var bugColor = [0.5, 0.5, 0.2, 1.0];
-        }
-        else if (bug.name === "Scorpion"){
-            var bugColor = [0.5, 0.5, 0.2, 1.0];
-        }
-
-        drawSingleOctagon(bug.x, bug.y, 0.0, bugColor);
-    }
-
-    // CENTIPEDE RENDERING
-    for (var c = 0; c < centipedes.length; c++){
-        centipedes[c].update();
-        centipedes[c].draw();
-    }
-
-
-    // COLLISION CHECK WITH MUSHROOM; user shouldn't be able to clip through mushrooms
-    var blocked = false;
-    for (var i = 0; i <mushrooms.length; i++){
-        if (checkCollision(nextX, nextY, playerRadius, mushrooms[i].x, mushrooms[i].y, mushroomRadius)) {
-            // console.log("MUSHROOM COLLISION");
-            blocked = true;
-            break;
-        }
-    }
-
-    // can only move if we don't have a mushroom collision
-    if (!blocked) {
-        moveX_JS = nextX;
-        moveY_JS = nextY;
-    }
-
-    thetaJS += (rotateSpeed * stopStartFlag);
     // todo: this is the player character 
     // todo: rename this function to something else
     drawSingleOctagon(moveX_JS, moveY_JS, thetaJS, [0.0, 1.0, 1.0, 1.0]);
