@@ -2,11 +2,6 @@
 // Project 1   
 
 
-// const { Centipede } = require("./helpers");
-
-//const { checkCollision } = require("./helpers");
-
-console.log(checkCollision(1,1,1,1,1,1));
 
 var gl;
 var shaderProgramSquare;
@@ -366,13 +361,7 @@ function render() {
 
     mushroomCollisionCheck();
 
-
-    // todo: this is the player character 
-    // todo: rename this function to something else
-    // drawSingleOctagon(moveX_JS, moveY_JS, thetaJS, [0.0, 1.0, 1.0, 1.0]);
     drawPlayerTriangle(moveX_JS, moveY_JS, 0.0, [0.0, 1.0, 1.0, 1.0]);
-
-
     requestAnimFrame(render);
 }
 
@@ -533,18 +522,6 @@ function setupOctagon() {
     myPositionAttribute = gl.getAttribLocation(shaderProgramSquare, "myPosition");
     gl.enableVertexAttribArray(myPositionAttribute);
 
-    // // Create a buffer on the graphics card,
-    // // and send array to the buffer for use
-    // // in the shaders
-    // var bufferId = gl.createBuffer();
-    // gl.bindBuffer( gl.ARRAY_BUFFER, bufferId );
-    // gl.bufferData( gl.ARRAY_BUFFER, flatten(arrayOfPoints), gl.STATIC_DRAW );
-    
-    // // Create a pointer that iterates over the
-    // // array of points in the shader code
-    // var myPositionAttribute = gl.getAttribLocation( shaderProgramSquare, "myPosition" );
-    // gl.vertexAttribPointer( myPositionAttribute, 2, gl.FLOAT, false, 0, 0 );
-    // gl.enableVertexAttribArray( myPositionAttribute );    
 }
 
 function drawOctagon() {
@@ -562,23 +539,9 @@ function drawOctagon() {
 }
 
 
-// function stopOrStartAnim() {
-//     if (stopStartFlag < 0.5) {
-//         stopStartFlag = 1.0;
-//     }
-//     else {
-//         stopStartFlag = 0.0;
-//     }
-// }
 
 function moveOctagon(event){
     console.log("Currently not doing anything with mouse clicks");
-    // var canvasX = event.clientX;
-    // var canvasY = event.clientY;
-    // moveX_JS = 2.0 * canvasX/512.0 - 1.0;
-    // moveY_JS = -(2.0 * canvasY/512.0 - 1.0);
-
-    // gl.uniform2f(moveUniform, moveX_JS, moveY_JS);
 
 }
 

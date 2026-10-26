@@ -39,9 +39,20 @@
     </head>
     
     <body onload="init()" onkeydown="movePlayer(event, 'down')" onkeyup="movePlayer(event, 'up')">
-        <canvas width="512" height="512" id="gl-canvas" onclick="moveOctagon(event)">
-        </canvas>
-    </br>
+        <div style="display: flex; gap: 24px; align-items: flex-start;">
+            <canvas width="512" height="512" id="gl-canvas" onclick="moveOctagon(event)">
+            </canvas>
+            <div id="side-panel" style="font-family: sans-serif; max-width: 300px;">
+                <h2>Centipede - Xavier Wattermann </h2>
+                <p><strong>Controls:</strong></p>
+                <ul>
+                    <li><strong>WASD / Arrows:</strong> Move</li>
+                    <li><strong>Spacebar:</strong> Shoot</li>
+                </ul>
+                <p>Score: <span id="scoreDisplay">0</span></p>
+                <p>Lives: <span id="livesDisplay">3</span></p>
+            </div>
+        </div>
         <!-- Control Buttons -->
         <button id="increaseSpeed" onclick="changeSpeed(true)"> Increase Speed </button>
         <button id="decreaseSpeed" onclick="changeSpeed(false)">Decrease Speed </button>
@@ -67,11 +78,11 @@
     <ul>
         <li><s>Replace hexagon (character) as a triangle</s></li> 
         <li>make lots of options params (bullet speed, player speed, monster spawn), etc</li>
-        <li>make spider shape into trapezoid (or something other than hexagon)</li>
+        <li><s>make spider shape into trapezoid (or something other than hexagon)</s></li>
         <li>add centipede bug (need behavior for when centipede collides with mushrooms)</li>
         <li>Flea needs to generate mushrooms on it's descent down</li>
-        <li>Need to have a minimum # of mushrooms on screen at a given time</li>
-        <li>Increase flea fall speed (too slow right now)</li>
+        <li><s>Need to have a minimum # of mushrooms on screen at a given time</s></li>
+        <li><s>Increase flea fall speed (too slow right now)</s></li>
         <li>Reduce spider Y height -- it currently goes too high</li>
         <li>Need to add spawn conditions -- e.g, when a spider gets spawned vs a scrop and flea</li>
         <li>Add lives</li>

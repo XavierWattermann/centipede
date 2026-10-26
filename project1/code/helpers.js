@@ -57,7 +57,7 @@ class Flea extends Bug {
             "Flea",
             pos.x,
             1.05,                   // Start above the screen
-            0.01,                   // Speed
+            0.016,                   // Speed
             0.03,                   // Radius
             2,                      // takes 2 hits
             [0.9, 0.2, 0.9, 1.0],   // Magenta color
