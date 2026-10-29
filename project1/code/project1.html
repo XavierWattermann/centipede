@@ -4,9 +4,9 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
             <title>Project 1 - CEG6500 - Xavier Wattermann</title>
-            <script type="text/javascript" src="../common/webgl-utils.js"></script>
-            <script type="text/javascript" src="../common/initShaders.js"></script>
-            <script type="text/javascript" src="../common/MV.js"></script>
+            <script type="text/javascript" src="../Common/webgl-utils.js"></script>
+            <script type="text/javascript" src="../Common/initShaders.js"></script>
+            <script type="text/javascript" src="../Common/MV.js"></script>
             <script type="text/javascript" src="helpers.js"></script>
             <script type="text/javascript" src="project1.js"></script>
             
@@ -49,48 +49,32 @@
                     <li><strong>WASD / Arrows:</strong> Move</li>
                     <li><strong>Spacebar:</strong> Shoot</li>
                 </ul>
+                <p>Score over >=5000 points to win!</p>
                 <p>Score: <span id="scoreDisplay">0</span></p>
                 <p>Lives: <span id="livesDisplay">3</span></p>
+                <p>Game Update: <span id="updateDisplay"></span></p>
             </div>
         </div>
         <!-- Control Buttons -->
-        <button id="increaseSpeed" onclick="changeSpeed(true)"> Increase Speed </button>
-        <button id="decreaseSpeed" onclick="changeSpeed(false)">Decrease Speed </button>
-        <button id="stopStartButton" onclick="stopOrStartAnim()">Start / Stop Rotate</button>
-    </br>
-        <button id="increaseRotateSpeed" onclick="changeRotateSpeed(true)"> Increase Rotate Speed </button>
-        <button id="decreaseRotateSpeed" onclick="changeRotateSpeed(false)">Decrease Rotate Speed </button>
+        <!-- <button id="increaseSpeed" onclick="changeSpeed(true)"> Increase Speed </button>
+        <button id="decreaseSpeed" onclick="changeSpeed(false)">Decrease Speed </button> -->
     </br>
     </br>
-        <button id="spawnMushrooms" onclick="createMushrooms()"> Spawn Mushrooms</button>
-        <button id="spawnFlea" onclick="spawnBug('Flea')"> Spawn Flea</button>
-        <button id="spawnSpider" onclick="spawnBug('Spider')"> Spawn Spider</button>
-        <button id="spawnScorpion" onclick="spawnBug('Scorpion')"> Spawn Scorpion</button>
-        <button id="spawnCentipede" onclick="spawnBug('Centipede')"> Spawn Centipede</button>
-        <!-- <button id="spawnCentipedeSeg" onclick="spawnBug('CentipedeSeg')"> Spawn CentipedeSeg</button> -->
+
+        <details style="margin-top: 16px; font-family: sans-serif;">
+            <summary style="cursor: pointer; font-weight: bold;">Debug Controls (Click to expand)</summary>
+            <div>
+                <button id="spawnFlea" onclick="spawnBug('Flea')">Spawn Flea</button>
+                <button id="spawnSpider" onclick="spawnBug('Spider')">Spawn Spider</button>
+                <button id="spawnScorpion" onclick="spawnBug('Scorpion')">Spawn Scorpion</button>
+                <button id="spawnCentipede" onclick="spawnBug('Centipede')">Spawn Centipede</button>
+            </div>
+        </details>
 
         <!-- Show the speed (mostly for my own debugging) -->
-        <p>Current Speed: <span id="speedDisplay">0.01</span></p>
-        <p>Current Rotate Speed: <span id="rotateSpeedDisplay">0.02</span></p>
+        <!-- <p>Current Speed: <span id="speedDisplay">0.01</span></p>
+        <p>Current Rotate Speed: <span id="rotateSpeedDisplay">0.02</span></p> -->
     </body>
-
-    <h2>TODO</h2>
-    <ul>
-        <li><s>Replace hexagon (character) as a triangle</s></li> 
-        <li>make lots of options params (bullet speed, player speed, monster spawn), etc</li>
-        <li><s>make spider shape into trapezoid (or something other than hexagon)</s></li>
-        <li>add centipede bug (need behavior for when centipede collides with mushrooms)</li>
-        <li>Flea needs to generate mushrooms on it's descent down</li>
-        <li><s>Need to have a minimum # of mushrooms on screen at a given time</s></li>
-        <li><s>Increase flea fall speed (too slow right now)</s></li>
-        <li>Reduce spider Y height -- it currently goes too high</li>
-        <li>Need to add spawn conditions -- e.g, when a spider gets spawned vs a scrop and flea</li>
-        <li>Add lives</li>
-        <li>Add points</li>
-    </ul>
-
-
-
 
 </html>
 

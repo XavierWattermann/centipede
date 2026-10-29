@@ -1,8 +1,6 @@
 // Xavier Wattermann
 // Project 1   
 
-
-
 var gl;
 var shaderProgramSquare;
 var thetaJS;
@@ -29,6 +27,8 @@ var maxY = -0.60 - playerRadius; //top the player can go TODO: ADJUST THIS
 
 var bugs = []; //array to hold all of the different types of bugs
 
+var isPaused = false;
+var isGameOver = false;
 var wPressed = false;
 var aPressed = false;
 var sPressed = false;
@@ -40,22 +40,133 @@ var playerBufferId; // this is for the player character
 var octagonBufferId; // mushrooms & centipede 
 var spiderBufferId; // for spider
 var bulletBufferId;
+var mushroomBufferId; // Separate buffer for mushroom caps
 var myPositionAttribute; //need to refactor this
 var bullets = []
 var bulletSpeed = 0.04;
 
 var mushrooms = [];
 var centipedes = []
-// centipedes.push(new Centipede(12));
 
-// todo: move this
+var spiderSpawnTimer = 300;
+var fleaSpawnTimer = 600;
+var scorpionSpawnTimer = 900;
 
+var score = 0;
+var lives = 3;
 
 // size of the clipspace / canvas 
 var COLS = 30;
 var ROWS = 30;
 var cellWidth = 2.0 / COLS;
 var cellHeight = 2.0 / ROWS;
+
+
+function hasBug(bugName){
+    for (var i = 0; i <bugs.length; i++){
+        if (bugs[i].name === bugName){
+            return true;
+        }
+    }
+    return false;
+}
+
+function handleBugSpawning(){
+    // make sure 1 centipede is always active on the screen
+    if (centipedes.length === 0){
+        centipedes.push(new Centipede(12));
+    }
+
+    if (!hasBug("Spider")){
+        spiderSpawnTimer--;
+        if (spiderSpawnTimer <= 0){
+            spawnBug("Spider");
+
+            spiderSpawnTimer = Math.floor(Math.random() * 240) + 360;
+        }
+    }
+
+    var mushroomsInPlayerZone = mushrooms.filter(function(m) { return m.row <= 5; }).length;
+    if (mushroomsInPlayerZone < 5 && !hasBug("Flea")) {
+        fleaSpawnTimer--;
+        if (fleaSpawnTimer <= 0) {
+            spawnBug("Flea");
+            fleaSpawnTimer = 300; // 5 second retry if still under threshold
+        }
+    }
+
+    if (!hasBug("Scorpion")) {
+        scorpionSpawnTimer--;
+        if (scorpionSpawnTimer <= 0) {
+            spawnBug("Scorpion");
+            scorpionSpawnTimer = Math.floor(Math.random() * 600) + 900;
+        }
+    }
+
+
+}
+
+function addScore(amount) {
+    score += amount;
+    document.getElementById("scoreDisplay").textContent = score;
+}
+
+function removeLife() {
+    lives -= 1;
+    if (lives <= 0){
+        lives = 0; // make it so lives can't go negative
+    }
+    document.getElementById("livesDisplay").textContent = lives;
+}
+
+function updateDisplay(message) {
+    // helper function to update the game display -- gives the user updates about their status
+    document.getElementById("updateDisplay").textContent = message;
+}
+
+function resetPlayerLife() {
+    removeLife();
+
+    if (lives <= 0) {
+        // TODO: -> need a better way to display this
+        console.log("GAME OVER");
+        var message = "";
+        if (score >= 5000){
+            message = "You scored over 5000 points, you win!"
+        }
+        else{
+            message = "Game Over! -- Refresh the page to restart";
+        }
+
+        updateDisplay(message)
+        isPaused = true;
+        isGameOver = true;
+        return;
+    }
+
+    updateDisplay("Lost a life! Press a key to resume");
+    isPaused = true;
+
+    moveX_JS = 0.0;
+    moveY_JS = -0.8;
+
+    bugs = [];
+    bullets = [];
+    centipedes = [];
+
+    wPressed = false;
+    aPressed = false;
+    sPressed = false;
+    dPressed = false;
+    spacePressed = false;
+
+    // reset mushrooms?
+    // for (var m = 0; m < mushrooms.length; m++) {
+    //     mushrooms[m].health = 4;
+    // }
+}
+
+
 // Maps grid (col, row) to WebGL clip space center coordinates (x, y)
 function gridToClip(col, row) {
     return {
@@ -107,7 +218,7 @@ function handleShooting(){
 
 
 function createMushrooms() {
-    var TARGET_NUMBER = 60; 
+    var TARGET_NUMBER = 45; 
 
     var occupied = {};
 
@@ -137,6 +248,33 @@ function createMushrooms() {
 
     // Buffer the octagon geometry once onto the GPU
     setupOctagon();
+}
+
+function setupMushroomCap() {
+    var points = [vec2(0.0, -0.015)]; // Center anchor at bottom-middle
+    var r = 0.03;
+    var steps = 8;
+    // Arch over the top from 0 to PI (180 degrees)
+    for (var i = 0; i <= steps; i++) {
+        var angle = i * (Math.PI / steps);
+        var x = r * Math.cos(angle);
+        var y = -0.015 + (r * 1.25) * Math.sin(angle); // Dome curve
+        points.push(vec2(x, y));
+    }
+    mushroomBufferId = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, mushroomBufferId);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(points), gl.STATIC_DRAW);
+}
+
+function drawMushroomCap(x, y, theta, color) {
+    color = color || [0.0, 1.0, 0.0, 1.0];
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, mushroomBufferId);
+    gl.vertexAttribPointer(myPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+    gl.uniform2f(moveUniform, x, y);
+    gl.uniform1f(thetaUniform, theta);
+    gl.uniform4fv(colorUniform, color);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 10);
 }
 
 function drawSingleOctagon(x, y, theta, color) {
@@ -195,14 +333,15 @@ function fleaHealthColor(health) {
 function bugPlayerCollisionCheck(bug){
     // Checks if the player has collided with any bug -- resulting in losing a life
     if (checkCollision(moveX_JS, moveY_JS, playerRadius, bug.x, bug.y, bug.radius)){
-        console.log("HIT BY BUG");
+        return true;
     }
 }
 
 function mushroomRendering(){
     for (var i = 0; i < mushrooms.length; i++) {
         var mushroomColor = mushroomHealthColor(mushrooms[i].health);
-        drawSingleOctagon(mushrooms[i].x, mushrooms[i].y, 0.0, mushroomColor);
+        // drawSingleOctagon(mushrooms[i].x, mushrooms[i].y, 0.0, mushroomColor);
+        drawMushroomCap(mushrooms[i].x, mushrooms[i].y, 0.0, mushroomColor);
     }
 }
 
@@ -214,7 +353,10 @@ function bugRendering(){
         bug.update();
 
         // player collision check
-        bugPlayerCollisionCheck(bug);
+        if (bugPlayerCollisionCheck(bug)){
+            resetPlayerLife();
+            return; // exit early 
+        }
 
         if (bug.isOffScreen()) {
             bugs.splice(i, 1);
@@ -239,8 +381,16 @@ function bugRendering(){
 
     // CENTIPEDE RENDERING
     for (var c = 0; c < centipedes.length; c++){
-        centipedes[c].update();
-        centipedes[c].draw();
+        var centipede = centipedes[c];
+        centipede.update(mushrooms);
+        centipede.draw();
+
+        for (var s = 0; s < centipede.segments.length; s++) {
+            if (bugPlayerCollisionCheck(centipede.segments[s])) {
+                resetPlayerLife();
+                return; 
+            }
+        }
     }
 
 
@@ -284,6 +434,7 @@ function bulletCollisionCheck(){
                 mushrooms[mushroom].health--;
                 if (mushrooms[mushroom].health <= 0) {
                     mushrooms.splice(mushroom, 1);
+                    addScore(10);
                 }
                 hitTarget = true;
                 break;
@@ -295,7 +446,9 @@ function bulletCollisionCheck(){
                 if (checkCollision(bullets[bullet].x, bullets[bullet].y, bulletRadius, bugs[b].x, bugs[b].y, bugs[b].radius)) {
                     bugs[b].takeDamage(1);
                     if (bugs[b].isDead()) {
+                        addScore(bugs[b].points);
                         bugs.splice(b, 1); // Remove the dead bug
+                        // addScore(100);
                     }
                     hitTarget = true;
                     break; // Stop checking other bugs for this bullet
@@ -319,12 +472,13 @@ function bulletCollisionCheck(){
                             y: seg.y,
                             health: 4
                         });
-                        // 2. Remove the shot segment
                         centipede.segments.splice(s, 1);
-                        // 3. If this centipede has no segments left, remove it
                         if (centipede.segments.length === 0) {
-                            centipedes.splice(c, 1);
-                            c--;
+                            // todo -- do we still need this?
+                            centipedes.push(new Centipede(12));
+                            // centipedes.splice(c, 1);
+                            // c--;
+                            addScore(100);
                         }
                         hitTarget = true;
                         break; // Stop checking other segments for this bullet
@@ -348,20 +502,21 @@ function bulletCollisionCheck(){
 }
 
 function render() {
-    // console.log(bugs.length, bugs) // use this to double check how many bugs we have
     gl.clear(gl.COLOR_BUFFER_BIT);
-
     mushroomRendering();
+    drawPlayerTriangle(moveX_JS, moveY_JS, 0.0, [0.0, 1.0, 1.0, 1.0]);
+
+    if (isPaused || isGameOver) {
+        // updateDisplay("Lost a life! Game is paused; move a key to resume ")
+        requestAnimFrame(render);
+        return;
+    }
 
     handleShooting();
-
     bulletCollisionCheck();
-
     bugRendering();
-
     mushroomCollisionCheck();
-
-    drawPlayerTriangle(moveX_JS, moveY_JS, 0.0, [0.0, 1.0, 1.0, 1.0]);
+    handleBugSpawning();
     requestAnimFrame(render);
 }
 
@@ -438,6 +593,7 @@ function init() {
     centipedes.push(new Centipede(12));
     createMushrooms();
     setupBullet();
+    setupMushroomCap();
     setupPlayerTriangle();
     setupSpiderTrapezoid();
     render();
@@ -547,6 +703,18 @@ function moveOctagon(event){
 
 
 function movePlayer(event, keyDirection){
+
+    if (isGameOver) {
+        return;
+    }
+
+    if (isPaused) {
+        if (keyDirection === 'down') {
+            isPaused = false;
+            updateDisplay("");
+        }
+        return;
+    }
     var theKeyCode = event.keyCode;
 
     // MOVEMENT =================================================

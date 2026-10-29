@@ -57,7 +57,7 @@ class Flea extends Bug {
             "Flea",
             pos.x,
             1.05,                   // Start above the screen
-            0.016,                   // Speed
+            0.018,                   // Speed
             0.03,                   // Radius
             2,                      // takes 2 hits
             [0.9, 0.2, 0.9, 1.0],   // Magenta color
@@ -68,6 +68,15 @@ class Flea extends Bug {
     // Flea moves straight down
     update() {
         this.y -= this.speed;
+        // ~2% chance per frame while in the play area (not off-screen or on bottom edge)
+        if (Math.random() < 0.02 && this.y < 0.85 && this.y > -0.80) {
+            mushrooms.push({
+                x: this.x,
+                y: this.y,
+                health: 4,
+                row: Math.floor((this.y + 1.0) * 15) // Keeps player-zone spawn check working
+            });
+        }
     }
 }
 
@@ -136,7 +145,7 @@ class Scorpion extends Bug {
             "Scorpion",
             0.9,
             0.8,                   
-            0.05,                   // Speed
+            0.02,                   // Speed
             0.03,                   // Radius
             1,                     
             [0.0, 0.1, 0.1, 1.0],   // TODO: change colorl
@@ -162,7 +171,8 @@ class CentipedeSegment extends Bug {
             isHead ? "CentipedeHead" : "CentipedeBody", //Name
             pos.x,
             pos.y,
-            0.05,                   // Speed
+            // 0.05,                   // Speed
+            0.02,                   // Speed
             0.03,                   // Radius
             1,                     
             segmentColor,   // TODO: change colorl
@@ -179,27 +189,56 @@ class CentipedeSegment extends Bug {
 
 
     }
-    update() {
-        // 1. Move horizontally in current direction
-        this.x += this.speed * this.dirX;
-        // 2. Hit Right Wall -> Drop down 1 row and turn left
+    update(mushrooms) {
+        // 1. Check Left & Right Wall Collision
+        var hitWall = false;
         if (this.dirX === 1 && this.x >= this.maxX) {
             this.x = this.maxX;
-            this.y += this.dropDistance * this.dirY; // Drops down (since dirY is -1)
-            this.dirX = -1;                          // Turn around to move left
-        }
-        // 3. Hit Left Wall -> Drop down 1 row and turn right
-        else if (this.dirX === -1 && this.x <= this.minX) {
+            hitWall = true;
+        } else if (this.dirX === -1 && this.x <= this.minX) {
             this.x = this.minX;
-            this.y += this.dropDistance * this.dirY; // Drops down (since dirY is -1)
-            this.dirX = 1;                           // Turn around to move right
+            hitWall = true;
         }
-        // 4. Floor boundary (Player zone): If it hits the bottom, start climbing up
+
+        if (hitWall) {
+            // Drop down 1 row and turn around
+            this.y += this.dropDistance * this.dirY;
+            this.dirX = -this.dirX;
+        } else {
+            // 2. Check Mushroom Collision (Look-ahead)
+            var nextX = this.x + (this.speed * this.dirX);
+            var hitMushroom = false;
+
+            if (mushrooms) {
+                for (var m = 0; m < mushrooms.length; m++) {
+                    // Only check mushrooms sharing the same row (similar Y coordinate)
+                    if (Math.abs(this.y - mushrooms[m].y) < this.dropDistance * 0.6) {
+                        // Check if the next step overlaps this mushroom
+                        if (checkCollision(nextX, this.y, this.radius, mushrooms[m].x, mushrooms[m].y, this.radius)) {
+                            hitMushroom = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (hitMushroom) {
+                // Hit mushroom: Drop down 1 row and turn around (just like a wall!)
+                this.y += this.dropDistance * this.dirY;
+                this.dirX = -this.dirX;
+                this.x += this.speed * this.dirX; // Step forward in the new direction
+            } else {
+                // Clear path: Normal movement
+                this.x = nextX;
+            }
+        }
+
+        // 3. Floor boundary (Player zone): If it reaches bottom, start climbing up
         if (this.y <= -0.95) {
             this.y = -0.95;
-            this.dirY = 1; // Move up on future wall bounces
+            this.dirY = 1; // Move up on future turns
         } else if (this.y >= -0.60 && this.dirY === 1) {
-            this.dirY = -1; // If it climbed to the top of player zone, head back down
+            this.dirY = -1; // If it climbed to top of player area, head back down
         }
     }
 }
@@ -217,7 +256,7 @@ class Centipede {
     }
     update() {
         for (var i = 0; i < this.segments.length; i++) {
-            this.segments[i].update();
+            this.segments[i].update(mushrooms);
         }
     }
     draw() {
